@@ -19,6 +19,9 @@ library(data.table)
 # loading clean occs
 clean_df <- read_csv("outputs/02_clean_occ.csv")
 
+# parameters for use on the cluster
+task_id <- commandArgs(trailingOnly = TRUE)
+task_id <- as.numeric(task_id[1])
 
 # getting clean species list
 spp <- sort(unique(clean_df$species))
@@ -44,16 +47,19 @@ thin_function <- function(chosen_sp, thin_dist){
 }
 
 # thinning records by 5 km
+this_sp <- spp[task_id]
+sp_df_5 <- thin_function(chosen_sp = this_sp, thin_dist = 5)
 
-five_list <- lapply(spp, function(x) thin_function(x, thin_dist = 5))
 
-clean_df_thin_5 <- bind_rows(five_list)
-
-write_csv(clean_df_thin_5, path = "outputs/03_clean_df_thin_5.csv")
+write_csv(clean_df_thin_5, 
+          path = paste0('outputs/03_', gsub(' ', '_', this_sp),
+                        '_5.csv'))
 
 # and now 10 km
-ten_list <- lapply(spp, function(x) thin_function(x, thin_dist = 10))
+this_sp <- spp[task_id]
+sp_df_10 <- thin_function(chosen_sp = this_sp, thin_dist = 10)
 
-clean_df_thin_10 <- bind_rows(ten_list)
 
-write_csv(clean_df_thin_10, path = "outputs/03_clean_df_thin_10.csv")
+write_csv(clean_df_thin_10, 
+          path = paste0('outputs/03_', gsub(' ', '_', this_sp),
+                        '_10.csv'))

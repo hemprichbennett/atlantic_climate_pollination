@@ -4,3 +4,4 @@
 .Ruserdata
 .DS_Store
 *.csv
+output_messages/*.out

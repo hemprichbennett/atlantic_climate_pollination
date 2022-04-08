@@ -12,4 +12,4 @@ module load Anaconda3//2020.11
 
 source activate $DATA/tiago_env
 
-Rscript scripts/1_thinning.R ${SLURM_ARRAY_TASK_ID} 
+Rscript scripts/3_thinning.R ${SLURM_ARRAY_TASK_ID} 

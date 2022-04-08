@@ -51,7 +51,7 @@ this_sp <- spp[task_id]
 sp_df_5 <- thin_function(chosen_sp = this_sp, thin_dist = 5)
 
 
-write_csv(clean_df_thin_5, 
+write_csv(sp_df_5, 
           path = paste0('outputs/03_', gsub(' ', '_', this_sp),
                         '_5.csv'))
 
@@ -60,6 +60,6 @@ this_sp <- spp[task_id]
 sp_df_10 <- thin_function(chosen_sp = this_sp, thin_dist = 10)
 
 
-write_csv(clean_df_thin_10, 
+write_csv(sp_df_10, 
           path = paste0('outputs/03_', gsub(' ', '_', this_sp),
                         '_10.csv'))

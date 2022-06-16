@@ -87,16 +87,16 @@ only_keys <- gbif_taxon_keys %>%
 
 # Do you need a login on GBIF
 # enter GBIF credentials
-user <- "barbadensa" # your gbif.org username
-pwd <- "Pap!to66" # your gbif.org password
-email <- "vovaldo2000@gmail.com" # your email
+credential_df <- read_csv('my_credentials.csv')
 
-occ_download(
+temp <- occ_download(
   pred_in("taxonKey", only_keys),
   pred("hasCoordinate", TRUE),
   pred("hasGeospatialIssue", FALSE),
   format = "SIMPLE_CSV",
-  user = user, pwd = pwd, email = email
+  user = credential_df$username, 
+  pwd = credential_df$password, 
+  email = credential_df$email
 )
 
 # DOI10.15468/dl.j5t9hg

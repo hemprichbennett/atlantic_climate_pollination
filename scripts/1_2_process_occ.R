@@ -16,7 +16,6 @@ library(bit64)
 # DOI10.15468/dl.j5t9hg
 gbif_df <- fread("./data/raw_data/gbif_output.csv", na.strings = c("", NA))
 
-interaction_file <- read_csv("./data/raw_data/interaction_list.csv")
 
 gbif_df2 <- gbif_df[,c(8,10,23,22,33,16)]
 colnames(gbif_df2) <- c("family", "species", "lon", "lat", "year", "country")
@@ -25,13 +24,15 @@ colnames(gbif_df2) <- c("family", "species", "lon", "lat", "year", "country")
 # [6] "countryCode" 
 
 
+interaction_file <- read_csv("./data/raw_data/interaction_list.csv")
+splist <- unique(c(interaction_file$Pollinator, interaction_file$Plant))
 
 # speciesLink -------------------------------------------------------------
 
 
 # https://rdrr.io/github/saramortara/rspeciesLink/man/rspeciesLink.html
 
-splist_specieslink <- rspeciesLink (dir = "C:/Users/barba/Documents/UERJ/An?lises/Pollinators/data" ,
+splist_specieslink <- rspeciesLink (dir = "data/processed_data/" ,
                                    filename = "splist" ,
                                    save = TRUE,
                                    basisOfRecord = NULL,

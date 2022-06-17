@@ -32,11 +32,44 @@ splist <- unique(c(interaction_file$Pollinator, interaction_file$Plant))
 
 # https://rdrr.io/github/saramortara/rspeciesLink/man/rspeciesLink.html
 
+
+# it looks like the below crashes if you request too many species at once
+
+# split the call to rspecieslink in two, so that it isn't rejected
+
+n_iterations <- 20
+per_iteration <- seq(1,length(splist))
+
+batches <- split(per_iteration, sort(per_iteration%%n_iterations))
+splink_lists <- list()
+for(i in 1:length(batches)){
+  
+  sp <- splist[batches[[i]]]
+  splink_lists[[i]] <- rspeciesLink (dir = "data/processed_data/" ,
+                filename = paste("splist_",i) ,
+                save = TRUE,
+                basisOfRecord = NULL,
+                # improve the following line:
+                species = sp,
+                collectionCode = NULL,
+                country = NULL,
+                stateProvince = NULL,
+                county = NULL,
+                Coordinates = "Yes", #		Yes | No | Original | Automatic | Blocked
+                CoordinatesQuality = "Good",	#Good | Bad
+                Typus = FALSE,
+                Images = NULL,
+                RedList = FALSE,
+                MaxRecords = NULL)
+}
+
+
 splist_specieslink <- rspeciesLink (dir = "data/processed_data/" ,
                                    filename = "splist" ,
                                    save = TRUE,
                                    basisOfRecord = NULL,
-                                   species = splist,
+                                   # improve the following line:
+                                   species = splist[1:10],
                                    collectionCode = NULL,
                                    country = NULL,
                                    stateProvince = NULL,

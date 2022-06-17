@@ -41,11 +41,11 @@ n_iterations <- 20
 per_iteration <- seq(1,length(splist))
 
 batches <- split(per_iteration, sort(per_iteration%%n_iterations))
-splink_lists <- list()
+splink_list <- list()
 for(i in 1:length(batches)){
   
   sp <- splist[batches[[i]]]
-  splink_lists[[i]] <- rspeciesLink (dir = "data/processed_data/" ,
+  splink_list[[i]] <- rspeciesLink (dir = "data/processed_data/" ,
                 filename = paste0("splist_",i) ,
                 save = TRUE,
                 basisOfRecord = NULL,
@@ -61,25 +61,10 @@ for(i in 1:length(batches)){
                 Images = NULL,
                 RedList = FALSE,
                 MaxRecords = NULL)
+  Sys.sleep(30)
 }
 
-
-splist_specieslink <- rspeciesLink (dir = "data/processed_data/" ,
-                                   filename = "splist" ,
-                                   save = TRUE,
-                                   basisOfRecord = NULL,
-                                   # improve the following line:
-                                   species = splist[1:10],
-                                   collectionCode = NULL,
-                                   country = NULL,
-                                   stateProvince = NULL,
-                                   county = NULL,
-                                   Coordinates = "Yes", #		Yes | No | Original | Automatic | Blocked
-                                   CoordinatesQuality = "Good",	#Good | Bad
-                                   Typus = FALSE,
-                                   Images = NULL,
-                                   RedList = FALSE,
-                                   MaxRecords = NULL)
+specieslink <- bind_rows(splink_lists)
 
 splist_specieslink <- splist_specieslink[,c(11,12,13,14,25,26,18,22)]
 colnames(splist_specieslink)

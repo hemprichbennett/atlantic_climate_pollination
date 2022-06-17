@@ -46,7 +46,7 @@ for(i in 1:length(batches)){
   
   sp <- splist[batches[[i]]]
   splink_lists[[i]] <- rspeciesLink (dir = "data/processed_data/" ,
-                filename = paste("splist_",i) ,
+                filename = paste0("splist_",i) ,
                 save = TRUE,
                 basisOfRecord = NULL,
                 # improve the following line:

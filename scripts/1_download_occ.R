@@ -60,3 +60,8 @@ temp <- occ_download(
   pwd = credential_df$password, 
   email = credential_df$email
 )
+
+
+# The above command requests that GBIF creates a file for you,
+# which needs to be downloaded in a browser session.
+# The request may take a few hours

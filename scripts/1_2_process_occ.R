@@ -37,7 +37,7 @@ splist <- unique(c(interaction_file$Pollinator, interaction_file$Plant))
 
 # split the call to rspecieslink in two, so that it isn't rejected
 
-n_iterations <- 50
+n_iterations <- 60
 per_iteration <- seq(1,length(splist))
 
 batches <- split(per_iteration, sort(per_iteration%%n_iterations))
@@ -64,7 +64,7 @@ for(i in 1:length(batches)){
   Sys.sleep(30)
 }
 
-specieslink <- bind_rows(splink_lists)
+specieslink <- bind_rows(splink_list)
 
 splist_specieslink <- splist_specieslink[,c(11,12,13,14,25,26,18,22)]
 colnames(splist_specieslink)

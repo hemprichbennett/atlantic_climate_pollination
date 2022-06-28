@@ -5,3 +5,5 @@
 .DS_Store
 *.csv
 output_messages/*.out
+data/*
+

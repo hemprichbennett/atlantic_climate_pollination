@@ -44,6 +44,12 @@ only_keys <- gbif_taxon_keys %>%
   filter(matchtype == "EXACT" & status == "ACCEPTED") %>% # get only accepted names
   pull(usagekey) #retain only the taxonkeys
 
+gbif_taxon_keys %>%
+  filter(matchtype == "EXACT" & status == "ACCEPTED") %>% # get only accepted names
+  select(usagekey) %>% #retain only the taxonkeys
+  rename(taxonKey = only_keys) %>%
+  write_csv(., 'data/raw_data/01_gbif_taxonkeys.csv')
+
 # download data directly at GBIF
 # (file needs to be mannualy fetched at the user's downloads page at gbif.org)
 

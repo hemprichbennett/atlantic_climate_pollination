@@ -64,9 +64,9 @@ for(i in 1:length(batches)){
   Sys.sleep(30)
 }
 
-specieslink <- bind_rows(splink_list)
+splink_list <- bind_rows(splink_list)
 
-splist_specieslink <- splist_specieslink[,c(11,12,13,14,25,26,18,22)]
+splist_specieslink <- splink_list[,c(11,12,13,14,25,26,18,22)]
 colnames(splist_specieslink)
 # [1] "family"           "genus"            "species"          "scientificName"   "decimalLongitude"
 # [6] "decimalLatitude"  "year"             "countryCode" 
@@ -76,7 +76,6 @@ splist_specieslink$species <- with(splist_specieslink,
 
 splist_specieslink <- splist_specieslink[, c(1,4,5,6,7,8)]
 colnames(splist_specieslink) <- c("family", "species", "lon", "lat", "year", "country")
-
 
 
 # Table with search results -----------------------------------------------
@@ -93,15 +92,13 @@ gbif_table <-
 
 searches <- rbind(splist_specieslink_table, gbif_table)
 
-only_keys <- tibble(taxonKey = only_keys)
-
 
 
 # Saving outputs ----------------------------------------------------------
 
-write_csv(searches, "./data/raw_data/pollinators/01_search_refined_results.csv")
-write_csv(splist_specieslink, "./data/raw_data/pollinators/01_specieslink_refined.csv")
-write_csv(gbif_df2, "./data/raw_data/pollinators/01_gbif_refined.csv")
-write_csv(splist_specieslink, "./data/raw_data/pollinators/01_unclean_records_specieslink.csv")
-write_csv(gbif_df, "./data/raw_data/pollinators/01_unclean_records_gbif.csv")
-write_csv(only_keys, "./data/raw_data/pollinators/01_gbif_taxonkeys.csv")
+write_csv(searches, "./data/raw_data/01_search_refined_results.csv")
+write_csv(splist_specieslink, "./data/raw_data/01_specieslink_refined.csv")
+write_csv(gbif_df2, "./data/raw_data/01_gbif_refined.csv")
+write_csv(splist_specieslink, "./data/raw_data/01_unclean_records_specieslink.csv")
+write_csv(gbif_df, "./data/raw_data/01_unclean_records_gbif.csv")
+

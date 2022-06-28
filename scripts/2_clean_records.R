@@ -15,7 +15,12 @@ library(countrycode)
 
 # reading data
 
-searches_df  <- read_csv("./data/raw_data/plants/01_search_refined_results.csv")
+searches_df  <- read_csv("./data/raw_data/01_search_refined_results.csv")
+
+
+interaction_file <- read_csv("./data/raw_data/interaction_list.csv")
+
+splist <- unique(c(interaction_file$Pollinator, interaction_file$Plant))
 
 # removing records with NA coordinates, keeping only species from our list
 searches_occs <- searches_df %>%
@@ -78,8 +83,8 @@ searches_occs_clean1 <- searches_occs[flags_occs$.summary, ] %>%
 library(raster)
 
 searches_occs_clean2 = searches_occs_clean1
-
-variable_world <- raster("D:/OneDrive/Documentos/Worldclim/wc2.1_2.5m_bio/wc2.1_2.5m_bio_1.tif")
+# file from https://biogeo.ucdavis.edu/data/worldclim/v2.1/base/wc2.1_2.5m_bio.zip
+variable_world <- raster("data/raw_data/wc2.1_2.5m_bio_1.tif")
 # All Americas
 variable <- crop(variable_world, c(-160, -28, -60, 90))
 coordinates(searches_occs_clean2) <- ~lon+lat
@@ -152,6 +157,6 @@ n_records <- count(search_occ_by_date, species)
 
 # Writing outputs ---------------------------------------------------------
 
-write_csv(n_records, path = "./data/processed_data/plants/02_n_records.csv")
-write_csv(search_occ_by_date, path = "./data/processed_data/plants/02_clean_occ.csv")
+write_csv(n_records, path = "./data/processed_data/02_n_records.csv")
+write_csv(search_occ_by_date, path = "./data/processed_data/02_clean_occ.csv")
 

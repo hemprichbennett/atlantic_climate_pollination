@@ -17,7 +17,7 @@ library(tidyverse)
 library(data.table)
 
 # loading clean occs
-clean_df <- read_csv("outputs/02_clean_occ.csv")
+clean_df <- read_csv("data/processed_data/02_clean_occ.csv")
 
 # parameters for use on the cluster
 task_id <- commandArgs(trailingOnly = TRUE)

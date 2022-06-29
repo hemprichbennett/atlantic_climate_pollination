@@ -26,7 +26,7 @@ library(tidyr)
 
 # Reading rasters
 # use pattern = '.tif$' or something else if you have multiple files in this folder
-raster_files <- list.files("./data/raw_data/env/present", full.names = T, 'tif$|bil$')
+raster_files <- list.files("./data/raw_data/", full.names = T, 'tif$|bil$')
 head(raster_files)
 
 envi <- stack(raster_files)
@@ -48,9 +48,12 @@ crs.albers <- CRS("+proj=aea +lat_1=-5 +lat_2=-42 +lat_0=-32 +lon_0=-60 +x_0=0
 
 
 # Creating mask area for variables' correlation
-species_df <- list.files("./data/processed_data/plants/03_thinned_records/5km",full.names = T, 'csv$') 
-species_df <- lapply(species_df, read.csv) %>% bind_rows()
-write.csv(species_df,"./data/processed_data/plants/03_thinned_records/03_thin_rec.csv")
+species_df <- list.files(path = 'outputs/sp/', 
+                                    pattern = '.+_5.csv',
+                         full.names = T) %>% 
+  lapply(., read.csv) %>% 
+  bind_rows()
+write.csv(species_df,"./data/processed_data/03_thin_rec.csv")
 coords <- species_df[ ,2:3]
 coordinates(coords) <- c("lon", "lat")
 proj4string(coords) <- crs.wgs84  # define original projection - wgs84
@@ -60,14 +63,17 @@ mcp <- gConvexHull(coords) # create minimum convex polygon
 # Attention: gBuffer and gArea are in meters, you have to convert in km if you want to
 mcp_buffer <- gBuffer(mcp, width = gArea(mcp)*2e-07) # 20% bigger than mcp
 # mcp_buffer <- SpatialPolygonsDataFrame(mcp_buffer, data = data.frame("val" = 1, row.names = "buffer"))
-mcp_buffer <- spTransform(mcp_buffer, crs.wgs84)
+
+# IMPORTANT: this is running on mcp, not mcp_buffer. mcp_buffer appears to have 
+# been converted to kilometers, which makes it an invalid projection
+mcp_buffer <- spTransform(mcp, crs.wgs84)
 
 envi.mask <- crop(envi.cut,mcp_buffer)
 envi.mask2 <- mask(envi.mask,mcp_buffer)
 
 # Saving rasters
-dir.create(paste0("./data/processed_data/env_cropped/present/plants/", "."))
-writeRaster(envi.mask2, filename='./data/processed_data/env_cropped/present/plants/', format="GTiff", 
+dir.create(paste0("./data/processed_data/env_cropped/present/"))
+writeRaster(envi.mask2, filename='./data/processed_data/env_cropped/present/', format="GTiff", 
             bylayer=TRUE, suffix="names", overwrite=TRUE)
 
 

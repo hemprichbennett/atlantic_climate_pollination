@@ -52,9 +52,11 @@ species_df <- list.files(path = 'outputs/sp/',
                                     pattern = '.+_5.csv',
                          full.names = T) %>% 
   lapply(., read.csv) %>% 
-  bind_rows()
+  bind_rows() %>%
+  mutate(species = as.character(species))
 write.csv(species_df,"./data/processed_data/03_thin_rec.csv")
-coords <- species_df[ ,2:3]
+
+coords <- coords[ ,2:3]
 coordinates(coords) <- c("lon", "lat")
 proj4string(coords) <- crs.wgs84  # define original projection - wgs84
 coords <- spTransform(coords, crs.albers)  # project to Albers Equal Area
@@ -62,11 +64,11 @@ mcp <- gConvexHull(coords) # create minimum convex polygon
 # If you want to add a buffer with a distance or an area around the mpc
 # Attention: gBuffer and gArea are in meters, you have to convert in km if you want to
 mcp_buffer <- gBuffer(mcp, width = gArea(mcp)*2e-07) # 20% bigger than mcp
-# mcp_buffer <- SpatialPolygonsDataFrame(mcp_buffer, data = data.frame("val" = 1, row.names = "buffer"))
+mcp_buffer <- SpatialPolygonsDataFrame(mcp_buffer, data = data.frame("val" = 1, row.names = "buffer"))
 
 # IMPORTANT: this is running on mcp, not mcp_buffer. mcp_buffer appears to have 
 # been converted to kilometers, which makes it an invalid projection
-mcp_buffer <- spTransform(mcp, crs.wgs84)
+mcp_buffer <- spTransform(mcp_buffer, crs.wgs84)
 
 envi.mask <- crop(envi.cut,mcp_buffer)
 envi.mask2 <- mask(envi.mask,mcp_buffer)

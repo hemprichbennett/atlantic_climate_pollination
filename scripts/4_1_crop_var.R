@@ -56,7 +56,15 @@ species_df <- list.files(path = 'outputs/sp/',
   mutate(species = as.character(species))
 write.csv(species_df,"./data/processed_data/03_thin_rec.csv")
 
-coords <- coords[ ,2:3]
+coords <- species_df %>%
+  # filter so that we only have rows where the absolute value of
+  # latitude is less than or equal to 90
+  filter(abs(lat) <= 90) %>%
+  # filter so that we only have rows where the absolute value of
+  # longitude is less than or equal to 90
+  filter(abs(lon) <= 180) %>%
+  select(lon, lat)
+
 coordinates(coords) <- c("lon", "lat")
 proj4string(coords) <- crs.wgs84  # define original projection - wgs84
 coords <- spTransform(coords, crs.albers)  # project to Albers Equal Area

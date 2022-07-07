@@ -6,4 +6,4 @@
 *.csv
 output_messages/*.out
 data/*
-
+figures/*

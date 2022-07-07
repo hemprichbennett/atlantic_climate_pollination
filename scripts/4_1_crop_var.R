@@ -19,6 +19,7 @@ library(dplyr)
 library(rgeos)
 library(reshape)
 library(tidyr)
+#library(sf)
 
 
 ## Current variables ------------------------------------------------------
@@ -37,7 +38,7 @@ envi <- stack(raster_files)
 # All America
 envi.cut<-crop(envi, c(-160, -28, -60, 90))
 plot(envi.cut[[1]])
-
+st_crs(envi.cut) <- 32610
 # Projections
 
 # geographical, datum WGS84
@@ -65,9 +66,24 @@ coords <- species_df %>%
   filter(abs(lon) <= 180) %>%
   select(lon, lat)
 
+
+
 coordinates(coords) <- c("lon", "lat")
 proj4string(coords) <- crs.wgs84  # define original projection - wgs84
+
+library(ggplot2)
+coords_wgs <- slot(coords, 'coords') %>%
+  as_tibble()
+ggplot(coords_wgs, aes(x = lon, y = lat)) + geom_point()+ 
+  ggtitle('after using proj4string(coords) <- crs.wgs84')
+ggsave('figures/wgs_plot.jpeg')
 coords <- spTransform(coords, crs.albers)  # project to Albers Equal Area
+
+coords_albers <- slot(coords, 'coords') %>%
+  as_tibble()
+ggplot(coords_albers, aes(x = lon, y = lat)) + geom_point()+ 
+  ggtitle('after using coords <- spTransform(coords, crs.albers)')
+ggsave('figures/albers_plot.jpeg')
 mcp <- gConvexHull(coords) # create minimum convex polygon
 # If you want to add a buffer with a distance or an area around the mpc
 # Attention: gBuffer and gArea are in meters, you have to convert in km if you want to

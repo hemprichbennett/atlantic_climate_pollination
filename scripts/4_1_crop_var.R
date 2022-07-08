@@ -47,7 +47,6 @@ crs.wgs84 <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84")
 crs.albers <- CRS("+proj=aea +lat_1=-5 +lat_2=-42 +lat_0=-32 +lon_0=-60 +x_0=0 
                   +y_0=0 +ellps=aust_SA +units=m +no_defs") 
 
-
 # Creating mask area for variables' correlation
 species_df <- list.files(path = 'outputs/sp/', 
                                     pattern = '.+_5.csv',
@@ -87,18 +86,19 @@ ggsave('figures/albers_plot.jpeg')
 mcp <- gConvexHull(coords) # create minimum convex polygon
 # If you want to add a buffer with a distance or an area around the mpc
 # Attention: gBuffer and gArea are in meters, you have to convert in km if you want to
-mcp_buffer <- gBuffer(mcp, width = gArea(mcp)*2e-07) # 20% bigger than mcp
+mcp_buffer <- gBuffer(mcp, width = gArea(mcp)*2e-09) # 2% bigger than mcp
 mcp_buffer <- SpatialPolygonsDataFrame(mcp_buffer, data = data.frame("val" = 1, row.names = "buffer"))
 
-# IMPORTANT: this is running on mcp, not mcp_buffer. mcp_buffer appears to have 
-# been converted to kilometers, which makes it an invalid projection
 mcp_buffer <- spTransform(mcp_buffer, crs.wgs84)
 
 envi.mask <- crop(envi.cut,mcp_buffer)
 envi.mask2 <- mask(envi.mask,mcp_buffer)
 
 # Saving rasters
-dir.create(paste0("./data/processed_data/env_cropped/present/"))
+if(!dir.exists('./data/processed_data/env_cropped/present/')){
+  dir.create("./data/processed_data/env_cropped/present/")
+}
+
 writeRaster(envi.mask2, filename='./data/processed_data/env_cropped/present/', format="GTiff", 
             bylayer=TRUE, suffix="names", overwrite=TRUE)
 

@@ -56,51 +56,76 @@ species_df <- list.files(path = 'outputs/sp/',
   mutate(species = as.character(species))
 write.csv(species_df,"./data/processed_data/03_thin_rec.csv")
 
-coords <- species_df %>%
-  # filter so that we only have rows where the absolute value of
-  # latitude is less than or equal to 90
-  filter(abs(lat) <= 90) %>%
-  # filter so that we only have rows where the absolute value of
-  # longitude is less than or equal to 90
-  filter(abs(lon) <= 180) %>%
-  select(lon, lat)
+interaction_df <- read.csv('data/raw_data/interaction_list.csv')
 
+taxa_groups <- c('both_groups', 'plants', 'pollinators')
 
-
-coordinates(coords) <- c("lon", "lat")
-proj4string(coords) <- crs.wgs84  # define original projection - wgs84
-
-library(ggplot2)
-coords_wgs <- slot(coords, 'coords') %>%
-  as_tibble()
-ggplot(coords_wgs, aes(x = lon, y = lat)) + geom_point()+ 
-  ggtitle('after using proj4string(coords) <- crs.wgs84')
-ggsave('figures/wgs_plot.jpeg')
-coords <- spTransform(coords, crs.albers)  # project to Albers Equal Area
-
-coords_albers <- slot(coords, 'coords') %>%
-  as_tibble()
-ggplot(coords_albers, aes(x = lon, y = lat)) + geom_point()+ 
-  ggtitle('after using coords <- spTransform(coords, crs.albers)')
-ggsave('figures/albers_plot.jpeg')
-mcp <- gConvexHull(coords) # create minimum convex polygon
-# If you want to add a buffer with a distance or an area around the mpc
-# Attention: gBuffer and gArea are in meters, you have to convert in km if you want to
-mcp_buffer <- gBuffer(mcp, width = gArea(mcp)*2e-09) # 2% bigger than mcp
-mcp_buffer <- SpatialPolygonsDataFrame(mcp_buffer, data = data.frame("val" = 1, row.names = "buffer"))
-
-mcp_buffer <- spTransform(mcp_buffer, crs.wgs84)
-
-envi.mask <- crop(envi.cut,mcp_buffer)
-envi.mask2 <- mask(envi.mask,mcp_buffer)
-
-# Saving rasters
-if(!dir.exists('./data/processed_data/env_cropped/present/')){
-  dir.create("./data/processed_data/env_cropped/present/")
+for(taxa in taxa_groups){
+  
+  
+  
+  if(taxa == 'plants'){
+    species_df_to_use <- species_df %>%
+      filter(species %in% interaction_df$Plant)
+  }else if(taxa == 'pollinators'){
+    species_df_to_use <- species_df %>%
+      filter(species %in% interaction_df$Pollinator)
+  }else if(taxa == 'both_groups'){
+    species_df_to_use <- species_df
+  }
+  
+  coords <- species_df %>%
+    # filter so that we only have rows where the absolute value of
+    # latitude is less than or equal to 90
+    filter(abs(lat) <= 90) %>%
+    # filter so that we only have rows where the absolute value of
+    # longitude is less than or equal to 90
+    filter(abs(lon) <= 180) %>%
+    select(lon, lat)
+  
+  coordinates(coords) <- c("lon", "lat")
+  proj4string(coords) <- crs.wgs84  # define original projection - wgs84
+  
+  # library(ggplot2)
+  # coords_wgs <- slot(coords, 'coords') %>%
+  #   as_tibble()
+  # ggplot(coords_wgs, aes(x = lon, y = lat)) + geom_point()+ 
+  #   ggtitle('after using proj4string(coords) <- crs.wgs84')
+  # ggsave('figures/wgs_plot.jpeg')
+  # coords <- spTransform(coords, crs.albers)  # project to Albers Equal Area
+  # 
+  # coords_albers <- slot(coords, 'coords') %>%
+  #   as_tibble()
+  # ggplot(coords_albers, aes(x = lon, y = lat)) + geom_point()+ 
+  #   ggtitle('after using coords <- spTransform(coords, crs.albers)')
+  # ggsave('figures/albers_plot.jpeg')
+  mcp <- gConvexHull(coords) # create minimum convex polygon
+  # If you want to add a buffer with a distance or an area around the mpc
+  # Attention: gBuffer and gArea are in meters, you have to convert in km if you want to
+  mcp_buffer <- gBuffer(mcp, width = gArea(mcp)*2e-09) # 2% bigger than mcp
+  mcp_buffer <- SpatialPolygonsDataFrame(mcp_buffer, data = data.frame("val" = 1, row.names = "buffer"))
+  
+  mcp_buffer <- spTransform(mcp_buffer, crs.wgs84)
+  
+  envi.mask <- crop(envi.cut,mcp_buffer)
+  envi.mask2 <- mask(envi.mask,mcp_buffer)
+  
+  initial_dir <- './data/processed_data/env_cropped/present'
+  
+  # Saving rasters
+  if(!dir.exists(initial_dir)){
+    dir.create(initial_dir)
+  }
+  
+  dirstring <- paste0(initial_dir, '/', taxa, '/')
+  
+  if(!dir.exists(dirstring)){
+    dir.create(dirstring)
+  }
+  
+  writeRaster(envi.mask2, filename=dirstring , format="GTiff", 
+              bylayer=TRUE, suffix="names", overwrite=TRUE)
+  
+  
+  
 }
-
-writeRaster(envi.mask2, filename='./data/processed_data/env_cropped/present/', format="GTiff", 
-            bylayer=TRUE, suffix="names", overwrite=TRUE)
-
-
-

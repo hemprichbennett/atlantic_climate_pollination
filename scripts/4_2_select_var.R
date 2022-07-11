@@ -95,7 +95,10 @@ write.csv(all_table2, "./results/6_variables_correlation_pearson.csv")
 
 # Copy selected variables in a new directory
 # creating directory
-dir.create("./data/processed_data/env_sel/")
+if(!dir.exists('./data/processed_data/env_sel/')){
+  dir.create("./data/processed_data/env_sel/")
+}
+
 # Add the chosen variables there
 
 

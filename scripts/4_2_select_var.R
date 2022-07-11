@@ -95,7 +95,10 @@ for(i in 1:length(cropped_dirs)){
   }
   
   write.csv(all_table, paste(treatment_results, "variables_correlation_spearman.csv", sep = '/'))
+  write.csv(pres_vars_sel_names, paste(treatment_results, "retained_spearman.csv", sep = '/'))
   write.csv(all_table2, paste(treatment_results, "variables_correlation_pearson.csv", sep ='/'))
+  write.csv(pres_vars_sel_names2, paste(treatment_results, "retained_pearson.csv", sep = '/'))
+  
   
   #BIO2 = Mean Diurnal Range (Mean of monthly (max temp - min temp))
   

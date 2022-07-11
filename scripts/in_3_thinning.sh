@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #SBATCH --job-name=thinning # the name for the cluster scheduler
-#SBATCH --time=01:30:00 # Maximum allowed runtime per iteration
+#SBATCH --time=02:30:00 # Maximum allowed runtime per iteration
 #SBATCH --array=1-755 # the number of iterations
 #SBATCH --output=output_messages/thinning%A_%a.out # the name of the output files
 #SBATCH --mail-type=ALL

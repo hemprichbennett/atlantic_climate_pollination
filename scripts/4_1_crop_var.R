@@ -19,7 +19,6 @@ library(dplyr)
 library(rgeos)
 library(reshape)
 library(tidyr)
-#library(sf)
 
 
 ## Current variables ------------------------------------------------------
@@ -38,7 +37,7 @@ envi <- stack(raster_files)
 # All America
 envi.cut<-crop(envi, c(-160, -28, -60, 90))
 plot(envi.cut[[1]])
-st_crs(envi.cut) <- 32610
+
 # Projections
 
 # geographical, datum WGS84

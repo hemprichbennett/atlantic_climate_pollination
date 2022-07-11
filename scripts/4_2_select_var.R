@@ -88,16 +88,13 @@ for(i in 1:length(cropped_dirs)){
     dir.create(results_root)
     }
   
-  treatment_results <- paste0(results_root, treatment)
+  treatment_results <- paste0(results_root, treatment, '_')
   
-  if(!dir.exists(treatment_results)){
-    dir.create(treatment_results)
-  }
   
-  write.csv(all_table, paste(treatment_results, "variables_correlation_spearman.csv", sep = '/'))
-  write.csv(pres_vars_sel_names, paste(treatment_results, "retained_spearman.csv", sep = '/'))
-  write.csv(all_table2, paste(treatment_results, "variables_correlation_pearson.csv", sep ='/'))
-  write.csv(pres_vars_sel_names2, paste(treatment_results, "retained_pearson.csv", sep = '/'))
+  write.csv(all_table, paste0(treatment_results, "variables_correlation_spearman.csv"))
+  write.csv(pres_vars_sel_names, paste0(treatment_results, "retained_spearman.csv"))
+  write.csv(all_table2, paste0(treatment_results, "variables_correlation_pearson.csv"))
+  write.csv(pres_vars_sel_names2, paste0(treatment_results, "retained_pearson.csv"))
   
   
   #BIO2 = Mean Diurnal Range (Mean of monthly (max temp - min temp))

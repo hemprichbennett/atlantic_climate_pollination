@@ -27,10 +27,24 @@ library(rgdal)
 # "X_wc2.1_2.5m_bio_15" "X_wc2.1_2.5m_bio_18" 
 # "X_wc2.1_2.5m_bio_2" "X_wc2.1_2.5m_bio_3"   "X_wc2.1_2.5m_bio_8"
 
-## Future variables ------------------------------------------------------
+## Present variables ------------------------------------------------------
 
-to_crop <- raster('./data/processed_data/env_cropped/present/_wc2.1_5m_bio_2.tif')
+# the variables we decided in 4_2 to keep
+desired_variables <- c(2, 3, 8, 15, 18)
+# make a nice string that we can use to identify these in the file-loading step
+desired_str <- paste0('_', desired_variables, '.tif')
+
+present_vars_dir <- './data/processed_data/env_cropped/present/both_groups'
+
+raster_files <- list.files(present_vars_dir, full.names = T, 'tif$|bil$')
+
+raster_paths_to_use <- raster_files[
+  grep(paste(desired_str, collapse = '|'), raster_files)
+]
+
+to_crop <- stack(raster_paths_to_use)
 #to_crop <- envi.mask2[[1]]
+
 
 # If future biovariables come separately, build a list like you did before
 
@@ -49,7 +63,7 @@ future_var <- stack("./data/raw_data/env/future/wc2.1_5m_bioc_BCC-CSM2-MR_ssp245
 #future_var <- stack("./data/raw_data/env/future/wc2.1_5m_bioc_BCC-CSM2-MR_ssp585_2061-2080.tif")
 
 # Chose the variables that you selected in "5_crop_environmental_variables.R"
-future_var_stk <- future_var[[c(2,3,8,15,18)]]
+future_var_stk <- future_var[[desired_variables]]
 envi_fut.cut<- crop(future_var_stk, to_crop)
 envi_fut.mask<- mask(envi_fut.cut, to_crop)
 

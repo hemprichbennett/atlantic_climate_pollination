@@ -42,8 +42,8 @@ raster_paths_to_use <- raster_files[
   grep(paste(desired_str, collapse = '|'), raster_files)
 ]
 
-to_crop <- stack(raster_paths_to_use)
-#to_crop <- envi.mask2[[1]]
+crop_by <- stack(raster_paths_to_use)
+#crop_by <- envi.mask2[[1]]
 
 
 # If future biovariables come separately, build a list like you did before
@@ -64,8 +64,8 @@ future_var <- stack("./data/raw_data/env/future/wc2.1_5m_bioc_BCC-CSM2-MR_ssp245
 
 # Chose the variables that you selected in "5_crop_environmental_variables.R"
 future_var_stk <- future_var[[desired_variables]]
-envi_fut.cut<- crop(future_var_stk, to_crop)
-envi_fut.mask<- mask(envi_fut.cut, to_crop)
+envi_fut.cut<- crop(future_var_stk, crop_by)
+envi_fut.mask<- mask(envi_fut.cut, crop_by)
 
 # Save only that selected variables 5_crop_environmental_variables.R step
 names(envi_fut.mask) <- c("bio_2","bio_3","bio_8", "bio_15","bio_18")

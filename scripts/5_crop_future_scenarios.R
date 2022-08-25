@@ -19,15 +19,7 @@ library(reshape)
 library(rgdal)
 
 
-# Opening GCMs ------------------------------------------------------------
-
-# Now, for other GCMs
-# And selected variables
-# By Spearman test (0.6): 
-# "X_wc2.1_2.5m_bio_15" "X_wc2.1_2.5m_bio_18" 
-# "X_wc2.1_2.5m_bio_2" "X_wc2.1_2.5m_bio_3"   "X_wc2.1_2.5m_bio_8"
-
-## Present variables ------------------------------------------------------
+# Present variables ------------------------------------------------------
 
 # the variables we decided in 4_2 to keep
 desired_variables <- c(2, 3, 8, 15, 18)
@@ -65,7 +57,7 @@ future_var <- stack("./data/raw_data/env/future/wc2.1_5m_bioc_BCC-CSM2-MR_ssp245
 # Chose the variables that you selected in "5_crop_environmental_variables.R"
 future_var_stk <- future_var[[desired_variables]]
 envi_fut.cut<- crop(future_var_stk, crop_by)
-envi_fut.mask<- mask(envi_fut.cut, crop_by)
+envi_fut.mask<- mask(future_var_stk, crop_by)
 
 # Save only that selected variables 5_crop_environmental_variables.R step
 names(envi_fut.mask) <- c("bio_2","bio_3","bio_8", "bio_15","bio_18")

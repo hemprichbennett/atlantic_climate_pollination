@@ -16,7 +16,7 @@ library(rgdal)
 library(raster)
 library(rgeos)
 library(dplyr)
-library(beepr)
+
 
 
 # Some examples of projections --------------------------------------------
@@ -24,18 +24,21 @@ library(beepr)
 # Creating two objects: (1) with the original projection of your data
 # and (2) with an equal area projection
 
-file = "./data/processed_data/plants/03_thin_rec.csv" ##enter the name of your table
+file = "./data/processed_data/03_thin_rec.csv" ##enter the name of your table
 
 ##minimum occurrence records to run analysis
 n_min <- 15
 
 ## Enter name of folders to read environmental layers
 #Present
-pres_folder = "./data/processed_data/env_sel/present/"
+pres_folder = "./data/processed_data/env_cropped/present/both_groups/"
 pres_files <- list.files(pres_folder, full.names = T, 'tif$|bil$') #don't change this
 ##standardize names of the variables as in your model [in the order of appearance in head(pres_files)]
 head(pres_files)
 names_var <- c('bio_15','bio_18', 'bio_2', 'bio_3','bio_8')
+
+# filter the cropped files by the variables we want
+pres_files <- pres_files[grep(paste(names_var, collapse = '|'), pres_files)]
 
 ##First RCP (name of the folder where your environmental layers are)
 RCP1 <- "RCP45" ##change number according to RCP
@@ -248,11 +251,4 @@ names(future_ly4) <- c("bio_15","bio_18","bio_2","bio_7","bio_8") ##name the ras
 writeRaster(future_ly4, filename=paste0("./data/processed_data/", sp_names[a], "/Fut_env_crop/rcp85/", names(future_ly4)), bylayer=TRUE, format="GTiff")
 
 }
-rm(future_ly)
-rm(future_ly2)
-rm(future_ly3)
-rm(future_ly4)
-rm(present_ly)
-rm(present_ly2)
 
-#beep(5) ##R will play a tune when this analysis is done

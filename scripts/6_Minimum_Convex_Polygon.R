@@ -53,9 +53,27 @@ RCP2 <- "RCP85"
 sp <- read.csv(file, header=TRUE, sep=",")#%>%
  #select(species, lon, lat) %>%
 #filter(species == "Hoplerythrinus_unitaeniatus")
-sp_names <- unique(sp$species)
+
 # running for one species
 #sp.n = sp_names[[2]]
+
+
+# get the counts of occurences per-species
+sp_counts <- sp %>%
+  group_by(species) %>%
+  summarise(n_occurrences = n()) 
+
+# make a vector of those who have too few
+to_omit <- sp_counts %>%
+  filter(n_occurrences < n_min) %>%
+  pull(species)
+
+# remove those species from the df 'sp'
+sp <- sp %>%
+  filter(!species %in% to_omit)
+
+
+sp_names <- unique(sp$species)
 
 # WGS84
 crs.wgs84 <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84")
@@ -118,7 +136,7 @@ occurrence_records <- sp %>%
     target_dir = paste0("./data/processed_data/plants/", sp_names[a], "/")
     dir.create( target_dir )
     write(format('species has less than 15 records and will not be analyzed'), file=paste(target_dir, 'STOP.txt', sep=""))
-    next
+    next()
   }
 
 # Check the column names for your coordinates and place below within c("","")
@@ -240,15 +258,18 @@ dir.create(paste0("./data/processed_data/", sp_names[a], "/Pres_env_crop/"))
   #          format = "GTiff",
    #         overwrite = T)
 #names(present_ly2) <- c('bio_15', 'bio_18', 'bio_4', 'bio_5')
-writeRaster(present_ly2, filename=paste0("./data/processed_data/", sp_names[a], "/Pres_env_crop/", names(present_ly2)), bylayer=TRUE, format="GTiff")
+writeRaster(present_ly2, filename=paste0("./data/processed_data/", sp_names[a], "/Pres_env_crop/", names(present_ly2)), bylayer=TRUE, format="GTiff",
+            overwrite = T)
 
 dir.create(paste0("./data/processed_data/",sp_names[a], "/Fut_env_crop/"))
 dir.create(paste0("./data/processed_data/",sp_names[a], "/Fut_env_crop/RCP45/"))
 names(future_ly2) <- c("bio_15","bio_18","bio_2","bio_7","bio_8") ##name the rasters as in your model
-writeRaster(future_ly2, filename=paste0("./data/processed_data/", sp_names[a], "/Fut_env_crop/rcp45/", names(future_ly2)), bylayer=TRUE, format="GTiff")
+writeRaster(future_ly2, filename=paste0("./data/processed_data/", sp_names[a], "/Fut_env_crop/rcp45/", names(future_ly2)), bylayer=TRUE, format="GTiff",
+            overwrite = T)
 dir.create(paste0("./data/processed_data/",sp_names[a], "/Fut_env_crop/RCP85/"))
 names(future_ly4) <- c("bio_15","bio_18","bio_2","bio_7","bio_8") ##name the rasters as in your model
-writeRaster(future_ly4, filename=paste0("./data/processed_data/", sp_names[a], "/Fut_env_crop/rcp85/", names(future_ly4)), bylayer=TRUE, format="GTiff")
+writeRaster(future_ly4, filename=paste0("./data/processed_data/", sp_names[a], "/Fut_env_crop/rcp85/", names(future_ly4)), bylayer=TRUE, format="GTiff",
+            overwrite = T)
 
 }
 

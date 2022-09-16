@@ -118,6 +118,12 @@ envi_fut_cut2 <- crop(envi_fut2, c(-160,-28,-60, 90))
 
 #length(sp_names) <- 100
 
+
+basedir <- './data/processed_data/sp_polygons/'
+if(!dir.exists(basedir)){
+  dir.create(basedir)
+  
+  }
 for (a in 1:length(sp_names)) {
   #
   message("starting the analysis for ", paste0(sp_names[a]))
@@ -257,7 +263,7 @@ for (a in 1:length(sp_names)) {
   # Save your layers --------------------------------------------------------
   
   
-  dir.create(paste0("./data/processed_data/", sp_names[a])) ##Fazer o loop aqui
+  dir.create(paste0(basedir, sp_names[a])) ##Fazer o loop aqui
   
   #writeOGR(
   # polygon_wgs,
@@ -270,7 +276,7 @@ for (a in 1:length(sp_names)) {
   #obj must be a SpatialPointsDataFrame, SpatialLinesDataFrame or
   #SpatialPolygonsDataFrame
   
-  dir.create(paste0("./data/processed_data/", sp_names[a], "/Pres_env_crop/"))
+  dir.create(paste0(basedir, sp_names[a], "/Pres_env_crop/"))
   
   #writeRaster(present_ly2,
   #           "./outputs/SPECIES/Pres_env_crop/env_crop", ##SPECIES deve ser o nome da especie
@@ -280,7 +286,7 @@ for (a in 1:length(sp_names)) {
   writeRaster(
     present_ly2,
     filename = paste0(
-      "./data/processed_data/",
+      basedir,
       sp_names[a],
       "/Pres_env_crop/",
       names(present_ly2)
@@ -290,9 +296,9 @@ for (a in 1:length(sp_names)) {
     overwrite = T
   )
   
-  dir.create(paste0("./data/processed_data/", sp_names[a], "/Fut_env_crop/"))
+  dir.create(paste0(basedir, sp_names[a], "/Fut_env_crop/"))
   dir.create(paste0(
-    "./data/processed_data/",
+    basedir,
     sp_names[a],
     "/Fut_env_crop/RCP45/"
   ))
@@ -301,7 +307,7 @@ for (a in 1:length(sp_names)) {
   writeRaster(
     future_ly2,
     filename = paste0(
-      "./data/processed_data/",
+      basedir,
       sp_names[a],
       "/Fut_env_crop/rcp45/",
       names(future_ly2)
@@ -311,7 +317,7 @@ for (a in 1:length(sp_names)) {
     overwrite = T
   )
   dir.create(paste0(
-    "./data/processed_data/",
+    basedir,
     sp_names[a],
     "/Fut_env_crop/RCP85/"
   ))
@@ -320,7 +326,7 @@ for (a in 1:length(sp_names)) {
   writeRaster(
     future_ly4,
     filename = paste0(
-      "./data/processed_data/",
+      basedir,
       sp_names[a],
       "/Fut_env_crop/rcp85/",
       names(future_ly4)

@@ -19,7 +19,7 @@ library(raster)
 library(dplyr)
 library(beepr)
 
-#.rs.restartR()
+
 
 intersect_mask <- function(x){
   values_x <- getValues(x)

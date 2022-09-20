@@ -19,7 +19,16 @@ library(raster)
 library(dplyr)
 library(beepr)
 
+task_id <- commandArgs(trailingOnly = TRUE)
+task_id <- as.numeric(task_id[1])
 
+
+if(is.na(task_id)){
+  # job is local, run in a loop
+  local <- T
+}else{
+  local <- F
+}
 
 intersect_mask <- function(x){
   values_x <- getValues(x)
@@ -29,9 +38,13 @@ intersect_mask <- function(x){
 }
 
 # Opening occurences ------------------------------------------------------
-
+if(local == T){
+  processed_dir = './data/processed_data/'
+}else{
+  processed_dir = '/data/zool-mosquito_ecology/zool2291/atlantic_climate_pollination/data/processed_data/'
+}
 ## Entrar com a planilha limpa pós spthin
-file = "./data/processed_data/03_thin_rec.csv" ##enter the name of your table
+file = paste0(processed_dir, "03_thin_rec.csv") ##enter the name of your table
 
 ##minimum occurrence records to run analysis
 n_min <- 15
@@ -42,6 +55,9 @@ n_min <- 15
 sp <- read.table(file, header=TRUE, sep=",")#%>%
 sp_names <- unique(sp$species)
 
+if(local == F){
+  sp_names <- sp_names[task_id]
+}
 
 #length(sp_names) <- 300
 
@@ -54,7 +70,7 @@ for (a in 1:length(sp_names)){
   message("starting the analysis for ", paste0(sp_names[a]))
 
   
-  sp_dir <- paste0('./data/processed_data/sp_polygons/', sp_names[a])
+  sp_dir <- paste0(processed_dir, 'sp_polygons/', sp_names[a])
   if (nrow(sp) < n_min){ ##Will not analyze species with less than 15 occurences
     print('species has less than 15 records and will not be analyzed')
     next

@@ -22,7 +22,7 @@ task_id <- commandArgs(trailingOnly = TRUE)
 task_id <- as.numeric(task_id[1])
 
 
-if(is.na(task_id)){
+if(grepl('Dropbox', getwd())){
   # job is local, run in a loop
   local <- T
 }else{

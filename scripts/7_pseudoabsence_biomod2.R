@@ -21,12 +21,21 @@ library(dplyr)
 task_id <- commandArgs(trailingOnly = TRUE)
 task_id <- as.numeric(task_id[1])
 
+if(is.na(task_id)){
+  interactive <- T
+  print('is interactive')
+}else{
+  interactive <- F
+  print('is non-interactive')
+}
 
 if(grepl('Dropbox', getwd())){
   # job is local, run in a loop
   local <- T
+  print('is local')
 }else{
   local <- F
+  print('is remote')
 }
 
 intersect_mask <- function(x){
@@ -54,7 +63,7 @@ n_min <- 15
 sp <- read.table(file, header=TRUE, sep=",")#%>%
 sp_names <- unique(sp$species)
 
-if(local == F){
+if(interactive == F){
   sp_names <- sp_names[task_id]
 }
 

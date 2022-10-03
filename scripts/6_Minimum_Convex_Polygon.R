@@ -302,8 +302,7 @@ for (a in 1:length(sp_names)) {
     sp_names[a],
     "/Fut_env_crop/RCP45/"
   ))
-  names(future_ly2) <-
-    c("bio_15", "bio_18", "bio_2", "bio_7", "bio_8") ##name the rasters as in your model
+  names(future_ly2) <- names_var ##name the rasters as in your model
   writeRaster(
     future_ly2,
     filename = paste0(
@@ -321,8 +320,7 @@ for (a in 1:length(sp_names)) {
     sp_names[a],
     "/Fut_env_crop/RCP85/"
   ))
-  names(future_ly4) <-
-    c("bio_15", "bio_18", "bio_2", "bio_7", "bio_8") ##name the rasters as in your model
+  names(future_ly4) <- names_var ##name the rasters as in your model
   writeRaster(
     future_ly4,
     filename = paste0(

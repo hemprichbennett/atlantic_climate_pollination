@@ -99,7 +99,10 @@ sp_names <- as.character(sp_names)
 
 if(grepl('Dropbox', getwd())== T){
   # running locally
-  sp_names <- 'Hura polyandra'
+  local_run <- T
+  sp_names <- sp_names[1]
+}else{
+  local_run <- F
 }
 
 for (a in 1:length(sp_names)){
@@ -121,7 +124,14 @@ for (a in 1:length(sp_names)){
 
   #Read predictor variables (i.e. present maps cropped by mcp)
   #raster_files <- list.files('./Maps/Present', full.names = T, 'tif$|bil$')
-  raster_files <- list.files(paste0("./data/processed_data/sp_polygons/", sp.n, "/Pres_env_crop"), full.names = T, 'tif$|bil$')
+  if(local_run == T){
+    raster_dir <- paste0("./data/processed_data/sp_polygons/", sp.n)
+  }else{
+    raster_dir <- paste0('/data/zool-mosquito_ecology/zool2291/atlantic_climate_pollination/data/processed_data/sp_polygons/', sp.n)
+  }
+  
+  raster_files <- list.files(paste0(raster_dir, "/Pres_env_crop"), full.names = T, 'tif$|bil$')
+  
   head(raster_files)
 
   predictors <- stack(raster_files)
@@ -130,7 +140,7 @@ for (a in 1:length(sp_names)){
   #raster_files2 <- list.files('./Maps/Future/rcp45', full.names = T, 'tif$|bil$')
 
   ## RCP45list.files(paste0("./data/processed_data/sp_polygons/", sp.n, "/Pres_env_crop"), full.names = T, 'tif$|bil$')
-  raster_files2 <- list.files(paste0("./data/processed_data/sp_polygons/", sp.n, "/Fut_env_crop/", RCP1), full.names = T, 'tif$|bil$')
+  raster_files2 <- list.files(paste0(raster_dir, "/Fut_env_crop/", RCP1), full.names = T, 'tif$|bil$')
   head(raster_files2)
 
   future_variable <- stack(raster_files2)
@@ -140,7 +150,7 @@ for (a in 1:length(sp_names)){
 
 
   ####RCP85
-  raster_files3 <- list.files(paste0("./data/processed_data/sp_polygons/", sp.n, "/Fut_env_crop/", RCP2), full.names = T, 'tif$|bil$')
+  raster_files3 <- list.files(paste0(raster_dir, "/Fut_env_crop/", RCP2), full.names = T, 'tif$|bil$')
   head(raster_files3)
 
   future_variable2 <- stack(raster_files3)
@@ -163,8 +173,15 @@ for (a in 1:length(sp_names)){
   cat( format( started_time, "%a %b %d %X %Y"), '-', 'Preparing train and test datasets for', sp.n, 'with ', lim, 'lines...', '\n')
 
   ##A pasta final onde tudo vai ser salvo (no loop é dentro da pasta de cada espécie_results talvez)
-  target_dir = paste(paste0("./results/model", sp.n, sep="/"))
-  dir.create( target_dir )
+  if(local_run == T){
+    target_dir = paste(paste0("./results/model", sp.n, sep="/")) 
+  }else{
+    target_dir = paste(paste0("/data/zool-mosquito_ecology/zool2291/atlantic_climate_pollination/model", sp.n, sep="/"))
+  }
+  if(!dir.exists(target_dir)){
+    dir.create( target_dir )
+  }
+  
 
   if(file.exists(paste(target_dir, '/STARTED.txt', sep=""))){
     stop("You MUST DELETE previous results folder before continue")
@@ -175,11 +192,11 @@ for (a in 1:length(sp_names)){
 
   # For using different number of pseudoabsence in each algorithm, for example:
   ## pseudoausencia = n*10
-  sp.data <- read.csv(paste0("./data/processed_data/sp_polygons/", sp.n,"/pres_pseudoabs2.csv"), header=TRUE, sep=',')
+  sp.data <- read.csv(paste0(raster_dir,"/pres_pseudoabs2.csv"), header=TRUE, sep=',')
 
   #colocar aqui embaixo  outra planilha depois de rodar pro outro modelo
   ##pseudoausencia = length(sp$species)
-  sp.data2 <- read.csv(paste0("./data/processed_data/sp_polygons/", sp.n,"/pres_pseudoabs.csv"), header=TRUE, sep=',')
+  sp.data2 <- read.csv(paste0(raster_dir,"/pres_pseudoabs.csv"), header=TRUE, sep=',')
 
   #sp.data3 <- read.csv(paste('./spdata/', "pres_pseudoabs_10000", '.csv', sep=""), header=TRUE, sep=',')
 
@@ -369,6 +386,13 @@ for (a in 1:length(sp_names)){
   for(i in 1:k){
     cat( format( Sys.time(), "%a %b %d %X %Y"), '-', 'Running Maxent (', i, ') model for', sp.n, '...', '\n')
     #mx[[i]] <- dismo::maxent(predictors, prestrain[[i]], a=bg) #run maxent with java. java sucks. I hate java.
+    maxnet_failed <- F
+    tryCatch({mod <- maxnet(p = p[[i]], data = data[[i]], f = maxnet.formula(p[[i]], data[[i]]), 
+                            addsamplestobackground = T)}
+             , error = function(e) {maxnet_failed <<- T})
+    if(maxnet_failed == T){
+      break()
+    }
     mx[[i]] <- maxnet(p = p[[i]], data = data[[i]], f = maxnet.formula(p[[i]], data[[i]]), addsamplestobackground = T) #run maxnet without java. You can use whichever you prefer, maxent or maxnet. You must only erase # from one and add on the other.
     evmx[[i]] <- dismo::evaluate(prestest[[i]], abstest[[i]], mx[[i]], predictors)
     mxTSS[[i]] <- max(evmx[[i]]@TPR + evmx[[i]]@TNR)-1
@@ -431,10 +455,13 @@ for (a in 1:length(sp_names)){
   TSS <- c(bcTSSval, gmTSSval, rfTSSval, mxTSSval, svTSSval)
   AUC <- c(bcAUCval, gmAUCval, rfAUCval, mxAUCval, svAUCval)
   kappa <- c(bckappaval, gmkappaval, rfkappaval, mxkappaval, svkappaval)
-  Valid <- data.frame(mod.sp, mod.names, TSS, AUC, kappa, stringsAsFactors=FALSE)
-
-  ##Pasta de resultados na pasta de cada espécie
-  write.csv(Valid, file = paste( target_dir, 'Valid_', sp.n, '.csv', sep=""))
+  if(maxnet_failed == F){
+    Valid <- data.frame(mod.sp, mod.names, TSS, AUC, kappa, stringsAsFactors=FALSE)
+    
+    ##Pasta de resultados na pasta de cada espécie
+    write.csv(Valid, file = paste( target_dir, 'Valid_', sp.n, '.csv', sep=""))
+  }
+  
 
 
   ### Test if at least one model is valid. If no models are valid it will stop here and continue on the next species
@@ -444,7 +471,7 @@ for (a in 1:length(sp_names)){
 
     cat( format( Sys.time(), "%a %b %d %X %Y"), '-', 'No models were valid for', sp.n, 'with ', lim, 'lines...', '\n')
 
-    save.image("./results/pollinators/my_analysis.rData")
+    #save.image("./results/pollinators/my_analysis.rData")
 
     finished_time = Sys.time()
     cat( format( finished_time, "%a %b %d %X %Y"), '-', 'FINISHED', '\n')
@@ -813,38 +840,40 @@ for (a in 1:length(sp_names)){
 
   # Projecting Maxent --------------------------------------------------------
 
-
-
-  cat( format( Sys.time(), "%a %b %d %X %Y"), '-', 'Projecting Maxent models of', sp.n, '...', '\n')
-  cur.mx <- list()
-  cur.mx.bin <- list()
-  future_variable.mx <- list()
-  future_variable.mx.bin <- list()
-  future_variable2.mx <- list()
-  future_variable2.mx.bin <- list()
-
-  for(i in 1:k){
-    cat( format( Sys.time(), "%a %b %d %X %Y"), '-', 'Projecting Maxent (', i, ') models of', sp.n, '...', '\n')
-    if(mxTSS[[i]] >= tss.lim){
-      cur.mx[[i]] <- predict(predictors, mx[[i]])
-      cur.mx.bin[[i]] <- cur.mx[[i]] > mxthres[[i]]
-
-      future_variable.mx[[i]] <- predict(future_variable, mx[[i]])
-      future_variable.mx.bin[[i]] <- future_variable.mx[[i]] > mxthres[[i]]
-
-      future_variable2.mx[[i]] <- predict(future_variable2, mx[[i]])
-      future_variable2.mx.bin[[i]] <- future_variable2.mx[[i]] > mxthres[[i]]
-
-    } else {
-      cur.mx[[i]] <- NULL
-      cur.mx.bin[[i]] <- NULL
-      future_variable.mx[[i]] <- NULL
-      future_variable.mx.bin[[i]] <- NULL
-      future_variable2.mx[[i]] <- NULL
-      future_variable2.mx.bin[[i]] <- NULL
-
+  if(maxnet_failed == F){
+    cat( format( Sys.time(), "%a %b %d %X %Y"), '-', 'Projecting Maxent models of', sp.n, '...', '\n')
+    cur.mx <- list()
+    cur.mx.bin <- list()
+    future_variable.mx <- list()
+    future_variable.mx.bin <- list()
+    future_variable2.mx <- list()
+    future_variable2.mx.bin <- list()
+    
+    for(i in 1:k){
+      cat( format( Sys.time(), "%a %b %d %X %Y"), '-', 'Projecting Maxent (', i, ') models of', sp.n, '...', '\n')
+      if(mxTSS[[i]] >= tss.lim){
+        cur.mx[[i]] <- predict(predictors, mx[[i]])
+        cur.mx.bin[[i]] <- cur.mx[[i]] > mxthres[[i]]
+        
+        future_variable.mx[[i]] <- predict(future_variable, mx[[i]])
+        future_variable.mx.bin[[i]] <- future_variable.mx[[i]] > mxthres[[i]]
+        
+        future_variable2.mx[[i]] <- predict(future_variable2, mx[[i]])
+        future_variable2.mx.bin[[i]] <- future_variable2.mx[[i]] > mxthres[[i]]
+        
+      } else {
+        cur.mx[[i]] <- NULL
+        cur.mx.bin[[i]] <- NULL
+        future_variable.mx[[i]] <- NULL
+        future_variable.mx.bin[[i]] <- NULL
+        future_variable2.mx[[i]] <- NULL
+        future_variable2.mx.bin[[i]] <- NULL
+        
+      }
     }
   }
+
+  
 
 
   ##########
@@ -1588,7 +1617,7 @@ for (a in 1:length(sp_names)){
 
   cat( format( Sys.time(), "%a %b %d %X %Y"), '-', 'Finished train and test datasets for', sp.n, 'with ', lim, 'lines...', '\n')
 
-  save.image("./outputs/my_analysis.rData")
+  save.image(paste(target_dir, "my_analysis.rData"))
 
   finished_time = Sys.time()
   cat( format( finished_time, "%a %b %d %X %Y"), '-', 'FINISHED', '\n')

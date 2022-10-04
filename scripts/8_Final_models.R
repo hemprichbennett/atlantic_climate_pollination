@@ -52,7 +52,16 @@ indexOf <- function(v,findFor) {
 
 #setwd("/Mydirectory")
 
+task_id <- commandArgs(trailingOnly = TRUE)
+task_id <- as.numeric(task_id[1])
 
+if(is.na(task_id)){
+  interactive <- T
+  print('is interactive')
+}else{
+  interactive <- F
+  print('is non-interactive')
+}
 
 # Settings ----------------------------------------------------------------
 #########           ACTION NEEDED        ##########
@@ -103,6 +112,10 @@ if(grepl('Dropbox', getwd())== T){
   sp_names <- sp_names[1]
 }else{
   local_run <- F
+}
+
+if(interactive == F){
+  sp_names <- sp_names[task_id]
 }
 
 for (a in 1:length(sp_names)){
@@ -184,7 +197,7 @@ for (a in 1:length(sp_names)){
   
 
   if(file.exists(paste(target_dir, '/STARTED.txt', sep=""))){
-    stop("You MUST DELETE previous results folder before continue")
+    file.remove(list.files(target_dir, full.names = T))
   }
     
 

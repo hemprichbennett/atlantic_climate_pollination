@@ -11,14 +11,14 @@
 
 ##Running ENM for multiple species & RCP 4.5 and 8.5
 # Required packages
-library(parallel)
-library(foreach)
-library(doParallel)
+# library(parallel)
+# library(foreach)
+# library(doParallel)
 require(raster)
 library(rgeos)
 library(rgdal)
 library(dismo)
-library(rJava)
+#library(rJava)
 library(kernlab)
 library(randomForest)
 library(maptools)
@@ -59,7 +59,7 @@ indexOf <- function(v,findFor) {
 
 # for GLM, RandomForest and SVM
 ##Set your model to the biovariables you selected. It should be exactly like the names of the environmental rasters.
-model <- pa ~bio_2+bio_7+bio_8+bio_14+bio_15
+model <- pa ~bio_2+bio_3+bio_8+bio_15+bio_18
 
 # partitions (4 = 75% train e 25% test; 5 = 80% train e 20% test; 10 = 90% train e 10% test)
 k = 10
@@ -76,7 +76,7 @@ ens.maps = T # save ensemble maps by algorithm
 
 #### Name of .csv file with species occurrences, columns: 'species', 'lon', 'lat'
 ## Entrar com a planilha limpa pós spthin
-file = "./data/processed_data/pollinators/03_thin_rec.csv"
+file = "./data/processed_data/03_thin_rec.csv"
 
 ##minimum occurrence records to run analysis
 n_min <- 15
@@ -93,9 +93,14 @@ RCP2 <- "RCP85"
 # Reading files -----------------------------------------------------------
 sp <- read.table(file, header=TRUE, sep=",")
 sp_names <- unique(sp$species)
+sp_names <- as.character(sp_names)
 
 #length(sp_names) <- 300
 
+if(grepl('Dropbox', getwd())== T){
+  # running locally
+  sp_names <- 'Hura polyandra'
+}
 
 for (a in 1:length(sp_names)){
   sp.n = sp_names[[a]]
@@ -116,7 +121,7 @@ for (a in 1:length(sp_names)){
 
   #Read predictor variables (i.e. present maps cropped by mcp)
   #raster_files <- list.files('./Maps/Present', full.names = T, 'tif$|bil$')
-  raster_files <- list.files(paste0("./data/processed_data/pollinators/", sp.n, "/Pres_env_crop"), full.names = T, 'tif$|bil$')
+  raster_files <- list.files(paste0("./data/processed_data/sp_polygons/", sp.n, "/Pres_env_crop"), full.names = T, 'tif$|bil$')
   head(raster_files)
 
   predictors <- stack(raster_files)
@@ -124,8 +129,8 @@ for (a in 1:length(sp_names)){
   # Read your future environmental rasters selected by correlation
   #raster_files2 <- list.files('./Maps/Future/rcp45', full.names = T, 'tif$|bil$')
 
-  ## RCP45
-  raster_files2 <- list.files(paste0("./data/processed_data/pollinators/", sp.n, "/Fut_env_crop/", RCP1), full.names = T, 'tif$|bil$')
+  ## RCP45list.files(paste0("./data/processed_data/sp_polygons/", sp.n, "/Pres_env_crop"), full.names = T, 'tif$|bil$')
+  raster_files2 <- list.files(paste0("./data/processed_data/sp_polygons/", sp.n, "/Fut_env_crop/", RCP1), full.names = T, 'tif$|bil$')
   head(raster_files2)
 
   future_variable <- stack(raster_files2)
@@ -135,7 +140,7 @@ for (a in 1:length(sp_names)){
 
 
   ####RCP85
-  raster_files3 <- list.files(paste0("./data/processed_data/pollinators/", sp.n, "/Fut_env_crop/", RCP2), full.names = T, 'tif$|bil$')
+  raster_files3 <- list.files(paste0("./data/processed_data/sp_polygons/", sp.n, "/Fut_env_crop/", RCP2), full.names = T, 'tif$|bil$')
   head(raster_files3)
 
   future_variable2 <- stack(raster_files3)
@@ -158,21 +163,23 @@ for (a in 1:length(sp_names)){
   cat( format( started_time, "%a %b %d %X %Y"), '-', 'Preparing train and test datasets for', sp.n, 'with ', lim, 'lines...', '\n')
 
   ##A pasta final onde tudo vai ser salvo (no loop é dentro da pasta de cada espécie_results talvez)
-  target_dir = paste(paste0("./results/pollinators", sp.n, "/results/", sep=""))
+  target_dir = paste(paste0("./results/model", sp.n, sep="/"))
   dir.create( target_dir )
 
-  if(file.exists(paste(target_dir, '/STARTED.txt', sep="")))
+  if(file.exists(paste(target_dir, '/STARTED.txt', sep=""))){
     stop("You MUST DELETE previous results folder before continue")
+  }
+    
 
   write(format( started_time, "%a %b %d %X %Y"), file=paste(target_dir, 'STARTED.txt', sep=""))
 
   # For using different number of pseudoabsence in each algorithm, for example:
   ## pseudoausencia = n*10
-  sp.data <- read.csv(paste0("./data/processed_data/pollinators/", sp.n,"/pres_pseudoabs2.csv"), header=TRUE, sep=',')
+  sp.data <- read.csv(paste0("./data/processed_data/sp_polygons/", sp.n,"/pres_pseudoabs2.csv"), header=TRUE, sep=',')
 
   #colocar aqui embaixo  outra planilha depois de rodar pro outro modelo
   ##pseudoausencia = length(sp$species)
-  sp.data2 <- read.csv(paste0("./data/processed_data/pollinators/", sp.n,"/pres_pseudoabs.csv"), header=TRUE, sep=',')
+  sp.data2 <- read.csv(paste0("./data/processed_data/sp_polygons/", sp.n,"/pres_pseudoabs.csv"), header=TRUE, sep=',')
 
   #sp.data3 <- read.csv(paste('./spdata/', "pres_pseudoabs_10000", '.csv', sep=""), header=TRUE, sep=',')
 

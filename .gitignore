@@ -8,3 +8,5 @@ output_messages/*
 data/*
 figures/*
 *.pdf
+results/*
+*.rData

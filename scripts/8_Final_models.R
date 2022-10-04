@@ -884,100 +884,102 @@ for (a in 1:length(sp_names)){
         
       }
     }
+    
+    
+    
+    
+    ##########
+    cur.mx <- Filter(Negate(is.null), cur.mx)
+    cur.mx.bin <- Filter(Negate(is.null), cur.mx.bin)
+    
+    cur.mx.ens <- Reduce('+', cur.mx.bin)
+    tval <- unique(cur.mx.ens)
+    tval <- tval[tval != 0]
+    tval <- median(tval)
+    
+    if(!is.null(cur.mx.ens)){
+      cur.mx.ens.bin <- cur.mx.ens >= tval} else {
+        cur.mx.ens.bin <- NULL
+      }
+    
+    
+    ##########
+    future_variable.mx <- Filter(Negate(is.null), future_variable.mx)
+    future_variable.mx.bin <- Filter(Negate(is.null), future_variable.mx.bin)
+    future_variable2.mx <- Filter(Negate(is.null), future_variable2.mx)
+    future_variable2.mx.bin <- Filter(Negate(is.null), future_variable2.mx.bin)
+    
+    future_variable.mx.ens <- Reduce('+', future_variable.mx.bin)
+    tval <- unique(future_variable.mx.ens)
+    tval <- tval[tval != 0]
+    tval <- median(tval)
+    
+    if(!is.null(future_variable.mx.ens)){
+      future_variable.mx.ens.bin <- future_variable.mx.ens >= tval} else {
+        future_variable.mx.ens.bin <- NULL
+      }
+    
+    future_variable2.mx.ens <- Reduce('+', future_variable2.mx.bin)
+    tval <- unique(future_variable2.mx.ens)
+    tval <- tval[tval != 0]
+    tval <- median(tval)
+    future_variable2.mx.ens.bin <- future_variable2.mx.ens >= tval
+    
+    if(!is.null(future_variable2.mx.ens)){
+      future_variable2.mx.ens.bin <- future_variable2.mx.ens >= tval} else {
+        future_variable2.mx.ens.bin <- NULL
+      }
+    
+    ##########
+    
+    if(length(cur.mx) != 0) {
+      for(z in 1:length(cur.mx)){
+        adeq = cur.mx[[z]]
+        if(sum(adeq[], na.rm=T)!=0){
+          minimo <- min(adeq[], na.rm=T)
+          maximo <- max(adeq[], na.rm=T)
+          adeq_norm <- function(x) {(x-minimo)/(maximo-minimo)}
+          cur.mx[[z]] <- calc(adeq, adeq_norm)
+        }
+      }
+      
+      for(z in 1:length(future_variable.mx)){
+        adeq = future_variable.mx[[z]]
+        if(sum(adeq[], na.rm=T)!=0){
+          minimo <- min(adeq[], na.rm=T)
+          maximo <- max(adeq[], na.rm=T)
+          adeq_norm <- function(x) {(x-minimo)/(maximo-minimo)}
+          future_variable.mx[[z]] <- calc(adeq, adeq_norm)
+        }
+      }
+      
+      for(z in 1:length(future_variable2.mx)){
+        adeq = future_variable2.mx[[z]]
+        if(sum(adeq[], na.rm=T)!=0){
+          minimo <- min(adeq[], na.rm=T)
+          maximo <- max(adeq[], na.rm=T)
+          adeq_norm <- function(x) {(x-minimo)/(maximo-minimo)}
+          future_variable2.mx[[z]] <- calc(adeq, adeq_norm)
+        }
+      }
+      
+      x <- stack(cur.mx)
+      cur.mx.cont <- calc(x, fun = mean)
+      
+      x <- stack(future_variable.mx)
+      future_variable.mx.cont <- calc(x, fun = mean)
+      
+      x <- stack(future_variable2.mx)
+      future_variable2.mx.cont <- calc(x, fun = mean)
+      
+    } else {
+      cur.mx.cont <- NULL
+      future_variable.mx.cont <- NULL
+      future_variable2.mx.cont <- NULL
+    }
   }
 
   
-
-
-  ##########
-  cur.mx <- Filter(Negate(is.null), cur.mx)
-  cur.mx.bin <- Filter(Negate(is.null), cur.mx.bin)
-
-  cur.mx.ens <- Reduce('+', cur.mx.bin)
-  tval <- unique(cur.mx.ens)
-  tval <- tval[tval != 0]
-  tval <- median(tval)
-
-  if(!is.null(cur.mx.ens)){
-    cur.mx.ens.bin <- cur.mx.ens >= tval} else {
-      cur.mx.ens.bin <- NULL
-    }
-
-
-  ##########
-  future_variable.mx <- Filter(Negate(is.null), future_variable.mx)
-  future_variable.mx.bin <- Filter(Negate(is.null), future_variable.mx.bin)
-  future_variable2.mx <- Filter(Negate(is.null), future_variable2.mx)
-  future_variable2.mx.bin <- Filter(Negate(is.null), future_variable2.mx.bin)
-
-  future_variable.mx.ens <- Reduce('+', future_variable.mx.bin)
-  tval <- unique(future_variable.mx.ens)
-  tval <- tval[tval != 0]
-  tval <- median(tval)
-
-  if(!is.null(future_variable.mx.ens)){
-    future_variable.mx.ens.bin <- future_variable.mx.ens >= tval} else {
-      future_variable.mx.ens.bin <- NULL
-    }
-
-  future_variable2.mx.ens <- Reduce('+', future_variable2.mx.bin)
-  tval <- unique(future_variable2.mx.ens)
-  tval <- tval[tval != 0]
-  tval <- median(tval)
-  future_variable2.mx.ens.bin <- future_variable2.mx.ens >= tval
-
-  if(!is.null(future_variable2.mx.ens)){
-    future_variable2.mx.ens.bin <- future_variable2.mx.ens >= tval} else {
-      future_variable2.mx.ens.bin <- NULL
-    }
-
-  ##########
-
-  if(length(cur.mx) != 0) {
-    for(z in 1:length(cur.mx)){
-      adeq = cur.mx[[z]]
-      if(sum(adeq[], na.rm=T)!=0){
-        minimo <- min(adeq[], na.rm=T)
-        maximo <- max(adeq[], na.rm=T)
-        adeq_norm <- function(x) {(x-minimo)/(maximo-minimo)}
-        cur.mx[[z]] <- calc(adeq, adeq_norm)
-      }
-    }
-
-    for(z in 1:length(future_variable.mx)){
-      adeq = future_variable.mx[[z]]
-      if(sum(adeq[], na.rm=T)!=0){
-        minimo <- min(adeq[], na.rm=T)
-        maximo <- max(adeq[], na.rm=T)
-        adeq_norm <- function(x) {(x-minimo)/(maximo-minimo)}
-        future_variable.mx[[z]] <- calc(adeq, adeq_norm)
-      }
-    }
-
-    for(z in 1:length(future_variable2.mx)){
-      adeq = future_variable2.mx[[z]]
-      if(sum(adeq[], na.rm=T)!=0){
-        minimo <- min(adeq[], na.rm=T)
-        maximo <- max(adeq[], na.rm=T)
-        adeq_norm <- function(x) {(x-minimo)/(maximo-minimo)}
-        future_variable2.mx[[z]] <- calc(adeq, adeq_norm)
-      }
-    }
-
-    x <- stack(cur.mx)
-    cur.mx.cont <- calc(x, fun = mean)
-
-    x <- stack(future_variable.mx)
-    future_variable.mx.cont <- calc(x, fun = mean)
-
-    x <- stack(future_variable2.mx)
-    future_variable2.mx.cont <- calc(x, fun = mean)
-
-  } else {
-    cur.mx.cont <- NULL
-    future_variable.mx.cont <- NULL
-    future_variable2.mx.cont <- NULL
-  }
 
 
   # Projecting SVM ----------------------------------------------------------

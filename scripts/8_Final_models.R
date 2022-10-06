@@ -109,7 +109,6 @@ sp_names <- as.character(sp_names)
 if(grepl('Dropbox', getwd())== T){
   # running locally
   local_run <- T
-  sp_names <- sp_names[1]
 }else{
   local_run <- F
 }

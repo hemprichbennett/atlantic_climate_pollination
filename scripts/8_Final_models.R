@@ -400,11 +400,18 @@ for (a in 1:length(sp_names)){
     cat( format( Sys.time(), "%a %b %d %X %Y"), '-', 'Running Maxent (', i, ') model for', sp.n, '...', '\n')
     #mx[[i]] <- dismo::maxent(predictors, prestrain[[i]], a=bg) #run maxent with java. java sucks. I hate java.
     maxnet_failed <- F
+    maxnet_failed <- F
     tryCatch({mod <- maxnet(p = p[[i]], data = data[[i]], f = maxnet.formula(p[[i]], data[[i]]), 
                             addsamplestobackground = T)}
              , error = function(e) {maxnet_failed <<- T})
     if(maxnet_failed == T){
-      break()
+      mx[[i]] <- NULL
+      mxTSS[[i]] <- 0
+      mxAUC[[i]] <- 0
+      mxkappa[[i]] <- 0
+      mxthres[[i]] <- NULL
+      maxnet_failed <- F
+      next()
     }
     mx[[i]] <- maxnet(p = p[[i]], data = data[[i]], f = maxnet.formula(p[[i]], data[[i]]), addsamplestobackground = T) #run maxnet without java. You can use whichever you prefer, maxent or maxnet. You must only erase # from one and add on the other.
     evmx[[i]] <- dismo::evaluate(prestest[[i]], abstest[[i]], mx[[i]], predictors)
@@ -468,12 +475,12 @@ for (a in 1:length(sp_names)){
   TSS <- c(bcTSSval, gmTSSval, rfTSSval, mxTSSval, svTSSval)
   AUC <- c(bcAUCval, gmAUCval, rfAUCval, mxAUCval, svAUCval)
   kappa <- c(bckappaval, gmkappaval, rfkappaval, mxkappaval, svkappaval)
-  if(maxnet_failed == F){
-    Valid <- data.frame(mod.sp, mod.names, TSS, AUC, kappa, stringsAsFactors=FALSE)
-    
-    ##Pasta de resultados na pasta de cada espécie
-    write.csv(Valid, file = paste( target_dir, 'Valid_', sp.n, '.csv', sep=""))
-  }
+  
+  Valid <- data.frame(mod.sp, mod.names, TSS, AUC, kappa, stringsAsFactors=FALSE)
+  
+  ##Pasta de resultados na pasta de cada espécie
+  write.csv(Valid, file = paste( target_dir, 'Valid_', sp.n, '.csv', sep=""))
+  
   
 
 

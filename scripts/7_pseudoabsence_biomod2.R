@@ -38,11 +38,30 @@ if(grepl('Dropbox', getwd())){
   print('is remote')
 }
 
+
+# Functions ---------------------------------------------------------------
+
 intersect_mask <- function(x){
   values_x <- getValues(x)
   inter_x <- values_x %*% rep(1,nlayers(x))
   mask <- setValues(subset(x,1),values = (inter_x>0))
   return(mask)
+}
+
+
+## function to get PA dataset
+get_PAtab <- function(bfd){
+  dplyr::bind_cols(
+    x = bfd@coord[, 1],
+    y = bfd@coord[, 2],
+    status = bfd@data.species,
+    bfd@PA
+  )
+}
+
+## function to get background mask
+get_mask <- function(bfd){
+  bfd@data.mask
 }
 
 # Opening occurences ------------------------------------------------------
@@ -164,20 +183,6 @@ for (a in 1:length(sp_names)){
 
 
 
-  ## function to get PA dataset
-  get_PAtab <- function(bfd){
-    dplyr::bind_cols(
-      x = bfd@coord[, 1],
-      y = bfd@coord[, 2],
-      status = bfd@data.species,
-      bfd@PA
-    )
-  }
-
-  ## function to get background mask
-  get_mask <- function(bfd){
-    bfd@data.mask
-  }
 
   (pres.xy <- get_PAtab(Mymodel) %>%
       filter(status == 1) %>%

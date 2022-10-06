@@ -12,11 +12,17 @@
 # This script is an example for generating pseudoabsence using biomod2 ----
 
 
-# Required packages
+
+# Load packages -----------------------------------------------------------
+
+
 
 library(biomod2)
 library(raster)
 library(dplyr)
+
+
+# Set parameters ----------------------------------------------------------
 
 task_id <- commandArgs(trailingOnly = TRUE)
 task_id <- as.numeric(task_id[1])
@@ -38,6 +44,19 @@ if(grepl('Dropbox', getwd())){
   print('is remote')
 }
 
+
+
+
+if(local == T){
+  processed_dir = './data/processed_data/'
+}else{
+  processed_dir = '/data/zool-mosquito_ecology/zool2291/atlantic_climate_pollination/data/processed_data/'
+}
+## Entrar com a planilha limpa pós spthin
+thin_df = paste0(processed_dir, "03_thin_rec.csv") ##enter the name of your table
+
+##minimum occurrence records to run analysis
+n_min <- 15
 
 # Functions ---------------------------------------------------------------
 
@@ -65,21 +84,14 @@ get_mask <- function(bfd){
 }
 
 # Opening occurences ------------------------------------------------------
-if(local == T){
-  processed_dir = './data/processed_data/'
-}else{
-  processed_dir = '/data/zool-mosquito_ecology/zool2291/atlantic_climate_pollination/data/processed_data/'
-}
-## Entrar com a planilha limpa pós spthin
-file = paste0(processed_dir, "03_thin_rec.csv") ##enter the name of your table
 
-##minimum occurrence records to run analysis
-n_min <- 15
+
+
 
 ########## END OF ACTION  NEEDED ############
 
 # Reading files -----------------------------------------------------------
-sp <- read.table(file, header=TRUE, sep=",")#%>%
+sp <- read.table(thin_df, header=TRUE, sep=",")#%>%
 sp_names <- unique(sp$species)
 
 if(interactive == F){
@@ -90,7 +102,7 @@ if(interactive == F){
 
 for (a in 1:length(sp_names)){
   # message("starting the analysis for ", paste0(sp_names[a]))
-  sp <- read.table(file, header=TRUE, sep=",") %>%
+  sp <- read.table(thin_df, header=TRUE, sep=",") %>%
     filter(species == paste0(sp_names[a])) %>%
     select(species, lon, lat)
 

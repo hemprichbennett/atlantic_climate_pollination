@@ -186,9 +186,9 @@ for (a in 1:length(sp_names)){
 
   ##A pasta final onde tudo vai ser salvo (no loop é dentro da pasta de cada espécie_results talvez)
   if(local_run == T){
-    target_dir = paste(paste0("./results/model", sp.n, sep="/")) 
+    target_dir = paste(paste0("./results/model/", sp.n, sep="/")) 
   }else{
-    target_dir = paste(paste0("/data/zool-mosquito_ecology/zool2291/atlantic_climate_pollination/model", sp.n, sep="/"))
+    target_dir = paste(paste0("/data/zool-mosquito_ecology/zool2291/atlantic_climate_pollination/results/model/", sp.n, sep="/"))
   }
   if(!dir.exists(target_dir)){
     dir.create( target_dir )

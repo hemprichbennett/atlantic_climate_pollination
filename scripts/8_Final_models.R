@@ -188,7 +188,6 @@ for (a in 1:length(sp_names)){
   if(local_run == T){
     target_dir = paste(paste0("./results/model/", sp.n, sep="/")) 
   }else{
-<<<<<<< HEAD
     target_dir = paste(paste0("/data/zool-mosquito_ecology/zool2291/atlantic_climate_pollination/results/model/", sp.n, sep="/"))
   }
   if(!dir.exists(target_dir)){

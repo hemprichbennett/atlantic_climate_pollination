@@ -1638,7 +1638,7 @@ for (a in 1:length(sp_names)){
 
   cat( format( Sys.time(), "%a %b %d %X %Y"), '-', 'Finished train and test datasets for', sp.n, 'with ', lim, 'lines...', '\n')
 
-  save.image(paste(target_dir, "my_analysis.rData"))
+  #save.image(paste(target_dir, "my_analysis.rData"))
 
   finished_time = Sys.time()
   cat( format( finished_time, "%a %b %d %X %Y"), '-', 'FINISHED', '\n')

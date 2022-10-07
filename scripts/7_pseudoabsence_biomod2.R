@@ -115,7 +115,6 @@ for (a in 1:length(sp_names)){
   sp_dir <- paste0(processed_dir, 'sp_polygons/', sp_names[a])
   if (nrow(sp) < n_min){ ##Will not analyze species with less than 15 occurences
     print('species has less than 15 records and will not be analyzed')
-    if()
     next
   }
 

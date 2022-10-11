@@ -115,6 +115,7 @@ if(grepl('Dropbox', getwd())== T){
 
 if(interactive == F){
   sp_names <- sp_names[task_id]
+  cat('iteration is ', task_id, ' species is sp_names\n')
 }
 
 for (a in 1:length(sp_names)){

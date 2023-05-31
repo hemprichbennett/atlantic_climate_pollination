@@ -17,6 +17,8 @@ library(dplyr)
 library(rgeos)
 library(reshape)
 library(rgdal)
+library(readr)
+library(magrittr)
 
 
 # Present variables ------------------------------------------------------
@@ -35,8 +37,8 @@ for(species in cropped_dirs){
   # the variables we decided in 4_2 to keep
   desired_variables <- paste0(results_root, species, '_retained_pearson.csv') %>%
     read_csv() %>%
-    pull(x) #%>%
-  #gsub('X', '', .)
+    pull(x) %>%
+    gsub('.+_', '', .)
   
   
   # Present variables ------------------------------------------------------

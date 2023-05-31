@@ -38,8 +38,14 @@ for(i in 1:length(cropped_dirs)){
   # id from cells without NA
   mi <- Which(present_ras[[1]], cells = TRUE)
   
-  # sampling cells to extract values
-  sampled <- sample(mi, 5000)
+  max_sample <- 5000
+  if(mi >= max_sample){
+    # sampling cells to extract values
+    sampled <- sample(mi, max_sample)
+  }else{
+    sampled <- mi
+  }
+  
   
   # values of selected cells from rasters of present variables
   vals <- present_ras[sampled]

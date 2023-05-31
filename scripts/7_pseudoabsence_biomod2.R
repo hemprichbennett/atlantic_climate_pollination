@@ -100,7 +100,7 @@ sp_names <- unique(sp$species)
 
 if(interactive == F){
   sp_names <- sp_names[task_id]
-  cat('iteration is ', task_id, ' species is sp_names\n')
+  cat('iteration is ', task_id, ' species is', sp_names, '\n')
 }
 
 #length(sp_names) <- 300

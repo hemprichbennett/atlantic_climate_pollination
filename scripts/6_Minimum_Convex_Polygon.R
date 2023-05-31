@@ -16,6 +16,7 @@ library(rgdal)
 library(raster)
 library(rgeos)
 library(dplyr)
+library(readr)
 
 
 
@@ -31,16 +32,11 @@ n_min <- 15
 
 ## Enter name of folders to read environmental layers
 #Present
-pres_folder = "./data/processed_data/env_cropped/present/both_groups/"
-pres_files <-
-  list.files(pres_folder, full.names = T, 'tif$|bil$') #don't change this
-##standardize names of the variables as in your model [in the order of appearance in head(pres_files)]
-head(pres_files)
-names_var <- c('bio_15', 'bio_18', 'bio_2', 'bio_3', 'bio_8')
 
-# filter the cropped files by the variables we want
-pres_files <-
-  pres_files[grep(paste(names_var, collapse = '|'), pres_files)]
+present_dirs <- list.dirs("./data/processed_data/env_cropped/present", 
+                          recursive = F)
+results_root <- './results/var_selection/'
+
 
 ##First RCP (name of the folder where your environmental layers are)
 RCP1 <- "RCP45" ##change number according to RCP
@@ -77,6 +73,13 @@ sp <- sp %>%
 
 sp_names <- unique(sp$species)
 
+# remove directories which we no longer want
+dirs_to_use <- present_dirs[
+  gsub('.+\\/', '', present_dirs) %in% sp_names
+  ]
+
+
+# projection stuff for South america
 # WGS84
 crs.wgs84 <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84")
 
@@ -84,51 +87,69 @@ crs.wgs84 <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84")
 crs.albers <-
   CRS(
     "+proj=aea +lat_1=-5 +lat_2=-42 +lat_0=-32 +lon_0=-60
-                  +x_0=0 +y_0=0 +ellps=aust_SA +units=m +no_defs"
+    +x_0=0 +y_0=0 +ellps=aust_SA +units=m +no_defs"
   )
-
-
-envi <- stack(pres_files)
-names(envi) <- names_var
-# All America
-envi.cut <- crop(envi, c(-160,-28,-60, 90))
-#plot(envi.cut[[1]])
-
-fut_files <-
-  list.files(paste0("./data/processed_data/env_sel/future/", RCP1),
-             full.names = T,
-             'tif$|bil$')
-#head(fut_files)
-envi_fut <- stack(fut_files)
-names(envi_fut) <-
-  names_var ##standardize names of the variables as in your model
-envi_fut_cut <- crop(envi_fut, c(-160,-28,-60, 90))
-#fut_envi_res <- resample(envi_fut, envi.cut, method='bilinear')
-#plot(envi_fut_cut[[1]])
-
-fut_files2 <-
-  list.files(paste0("./data/processed_data/env_sel/future/", RCP2),
-             full.names = T,
-             'tif$|bil$')
-#head(fut_files2)
-envi_fut2 <- stack(fut_files2)
-names(envi_fut2) <-
-  names_var  ##standardize names of the variables as in your model
-envi_fut_cut2 <- crop(envi_fut2, c(-160,-28,-60, 90))
-
-#length(sp_names) <- 100
 
 
 basedir <- './data/processed_data/sp_polygons/'
 if(!dir.exists(basedir)){
   dir.create(basedir)
   
-  }
-for (a in 1:length(sp_names)) {
-  #
-  message("starting the analysis for ", paste0(sp_names[a]))
+}
+
+for(pres_folder in dirs_to_use){
+  pres_files <-
+    list.files(pres_folder, full.names = T, 'tif$|bil$') #don't change this
+  species <- gsub('.+\\/', '', pres_folder)
   
-  sp.n = sp_names[[a]]
+  desired_variables <- paste0(results_root, species, '_retained_pearson.csv') %>%
+    read_csv() %>%
+    pull(x) %>%
+    gsub('.+_', '', .)
+  
+  # filter the cropped files by the variables we want
+  pres_files <-
+    pres_files[grep(paste(desired_variables, collapse = '\\.tif|'), pres_files)]
+  
+  
+  envi <- stack(pres_files)
+  names(envi) <- desired_variables
+  # All America
+  envi.cut <- crop(envi, c(-160,-28,-60, 90))
+  #plot(envi.cut[[1]])
+  
+  fut_files <-
+    list.files(paste0("./data/processed_data/env_sel/future/", species, '/', RCP1),
+               full.names = T,
+               'tif$|bil$')
+  # filter by the variables we want
+  desired_biovars <- gsub('X', '_', desired_variables)
+  fut_files <-
+    fut_files[grep(paste(desired_biovars, collapse = '\\.tif|'), fut_files)]
+  #head(fut_files)
+  envi_fut <- stack(fut_files)
+  names(envi_fut) <-
+    desired_variables ##standardize names of the variables as in your model
+  envi_fut_cut <- crop(envi_fut, c(-160,-28,-60, 90))
+  #fut_envi_res <- resample(envi_fut, envi.cut, method='bilinear')
+  #plot(envi_fut_cut[[1]])
+  
+  fut_files2 <-
+    list.files(paste0("./data/processed_data/env_sel/future/",species, '/', RCP2),
+               full.names = T,
+               'tif$|bil$')
+  
+  fut_files2 <-
+    fut_files2[grep(paste(desired_biovars, collapse = '\\.tif|'), fut_files2)]
+  #head(fut_files2)
+  envi_fut2 <- stack(fut_files2)
+  names(envi_fut2) <-
+    desired_variables  ##standardize names of the variables as in your model
+  envi_fut_cut2 <- crop(envi_fut2, c(-160,-28,-60, 90))
+  
+  message("starting the analysis for ", paste0(species))
+  
+  
   # Lambert Azimuthal Equal Area (ideal for Pacific Ocean islands)
   #crs.azim <-
   # CRS("+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84
@@ -143,7 +164,7 @@ for (a in 1:length(sp_names)) {
   
   ##Planilha de ocorrência pós spthin aqui
   occurrence_records <- sp %>%
-    filter(species == paste0(sp_names[a])) %>%
+    filter(species == paste0(species)) %>%
     select(species, lon, lat)
   
   # Number of occurrences to perform pseudoabsence sampling
@@ -152,7 +173,7 @@ for (a in 1:length(sp_names)) {
   if (nrow(occurrence_records) < n_min) {
     ##Will not analyze species with less than n_min occurences
     print('species has less than 15 records and will not be analyzed')
-    target_dir = paste0("./data/processed_data/plants/", sp_names[a], "/")
+    target_dir = paste0("./data/processed_data/", species, "/")
     dir.create(target_dir)
     write(
       format('species has less than 15 records and will not be analyzed'),
@@ -263,11 +284,11 @@ for (a in 1:length(sp_names)) {
   # Save your layers --------------------------------------------------------
   
   
-  dir.create(paste0(basedir, sp_names[a])) ##Fazer o loop aqui
+  dir.create(paste0(basedir, species)) ##Fazer o loop aqui
   
   #writeOGR(
   # polygon_wgs,
-  #dsn = paste0("./outputs/", sp_names[a]), ##SPECIES deve ser o nome da especie
+  #dsn = paste0("./outputs/", species), ##SPECIES deve ser o nome da especie
   #layer = "polygon_mpc_wgs",
   #driver = "ESRI Shapefile",
   #overwrite = T)
@@ -276,7 +297,7 @@ for (a in 1:length(sp_names)) {
   #obj must be a SpatialPointsDataFrame, SpatialLinesDataFrame or
   #SpatialPolygonsDataFrame
   
-  dir.create(paste0(basedir, sp_names[a], "/Pres_env_crop/"))
+  dir.create(paste0(basedir, species, "/Pres_env_crop/"))
   
   #writeRaster(present_ly2,
   #           "./outputs/SPECIES/Pres_env_crop/env_crop", ##SPECIES deve ser o nome da especie
@@ -287,7 +308,7 @@ for (a in 1:length(sp_names)) {
     present_ly2,
     filename = paste0(
       basedir,
-      sp_names[a],
+      species,
       "/Pres_env_crop/",
       names(present_ly2)
     ),
@@ -296,18 +317,18 @@ for (a in 1:length(sp_names)) {
     overwrite = T
   )
   
-  dir.create(paste0(basedir, sp_names[a], "/Fut_env_crop/"))
+  dir.create(paste0(basedir, species, "/Fut_env_crop/"))
   dir.create(paste0(
     basedir,
-    sp_names[a],
+    species,
     "/Fut_env_crop/RCP45/"
   ))
-  names(future_ly2) <- names_var ##name the rasters as in your model
+  names(future_ly2) <- desired_variables ##name the rasters as in your model
   writeRaster(
     future_ly2,
     filename = paste0(
       basedir,
-      sp_names[a],
+      species,
       "/Fut_env_crop/rcp45/",
       names(future_ly2)
     ),
@@ -317,15 +338,15 @@ for (a in 1:length(sp_names)) {
   )
   dir.create(paste0(
     basedir,
-    sp_names[a],
+    species,
     "/Fut_env_crop/RCP85/"
   ))
-  names(future_ly4) <- names_var ##name the rasters as in your model
+  names(future_ly4) <- desired_variables ##name the rasters as in your model
   writeRaster(
     future_ly4,
     filename = paste0(
       basedir,
-      sp_names[a],
+      species,
       "/Fut_env_crop/rcp85/",
       names(future_ly4)
     ),
@@ -335,3 +356,21 @@ for (a in 1:length(sp_names)) {
   )
   
 }
+#pres_folder = "./data/processed_data/env_cropped/present/both_groups/"
+# pres_files <-
+#   list.files(pres_folder, full.names = T, 'tif$|bil$') #don't change this
+# ##standardize names of the variables as in your model [in the order of appearance in head(pres_files)]
+# head(pres_files)
+# names_var <- c('bio_15', 'bio_18', 'bio_2', 'bio_3', 'bio_8')
+# 
+# # filter the cropped files by the variables we want
+# pres_files <-
+#   pres_files[grep(paste(names_var, collapse = '|'), pres_files)]
+
+
+
+
+
+#length(sp_names) <- 100
+
+

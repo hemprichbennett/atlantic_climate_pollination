@@ -20,6 +20,7 @@ library(rgdal)
 library(dismo)
 #library(rJava)
 library(kernlab)
+library(readr)
 library(randomForest)
 library(maptools)
 library(SDMTools)
@@ -49,10 +50,11 @@ indexOf <- function(v,findFor) {
   return(0)
 }
 
-task_id <- commandArgs(trailingOnly = TRUE)
-task_id <- as.numeric(task_id[1])
 
 #setwd("/Mydirectory")
+
+task_id <- commandArgs(trailingOnly = TRUE)
+task_id <- as.numeric(task_id[1])
 
 if(is.na(task_id)){
   interactive <- T
@@ -113,6 +115,16 @@ RCP1 <- "RCP45"
 ##Second RCP
 RCP2 <- "RCP85"
 
+if(local == T){
+  results_root <- './results/var_selection/'
+}else{
+	results_root <- '/data/zool-mosquito_ecology/zool2291/atlantic_climate_pollination/results/var_selection/'
+}
+
+
+if(!dir.exists(results_root)){
+  dir.create(results_root)
+}
 ########## END OF ACTION  NEEDED ############
 
 # Reading files -----------------------------------------------------------
@@ -131,7 +143,7 @@ if(grepl('Dropbox', getwd())== T){
 
 if(interactive == F){
   sp_names <- sp_names[task_id]
-  cat('iteration is ', task_id, ' species is sp_names\n')
+  cat('iteration is ', task_id, ' species is', sp_names, ' \n')
 }
 
 for (a in 1:length(sp_names)){
@@ -146,7 +158,14 @@ for (a in 1:length(sp_names)){
     print('species has less than 15 records and will not be analyzed')
     next
   }
+  
+  desired_variables <- paste0(results_root, sp.n, '_retained_pearson.csv') %>%
+    read_csv() %>%
+    pull(x) #%>%
+    #gsub('X', 'bio_', .)
 
+  model <- paste('pa ~', paste(desired_variables, collapse = ' + '))
+    
 
   # running for one species
   sp.names <- as.character(unique(presences$species))
@@ -173,8 +192,8 @@ for (a in 1:length(sp_names)){
   head(raster_files2)
 
   future_variable <- stack(raster_files2)
-  future_variable[[3]] <- future_variable[[3]]/10 ##divide Temperature values by 10 [https://worldclim.org/data/v1.4/formats.html]
-  future_variable[[4]] <- future_variable[[4]]/10
+  #future_variable[[3]] <- future_variable[[3]]/10 ##divide Temperature values by 10 [https://worldclim.org/data/v1.4/formats.html]
+  #future_variable[[4]] <- future_variable[[4]]/10
   #names(future_variable)
 
 
@@ -183,8 +202,8 @@ for (a in 1:length(sp_names)){
   head(raster_files3)
 
   future_variable2 <- stack(raster_files3)
-  future_variable2[[3]] <- future_variable2[[3]]/10 ##divide Temperature values by 10 [https://worldclim.org/data/v1.4/formats.html]
-  future_variable2[[4]] <- future_variable2[[4]]/10
+  #future_variable2[[3]] <- future_variable2[[3]]/10 ##divide Temperature values by 10 [https://worldclim.org/data/v1.4/formats.html]
+  #future_variable2[[4]] <- future_variable2[[4]]/10
   #names(future_variable)
 
   # ENM ---------------------------------------------------------------------
@@ -208,7 +227,7 @@ for (a in 1:length(sp_names)){
     target_dir = paste(paste0("/data/zool-mosquito_ecology/zool2291/atlantic_climate_pollination/results/model/", sp.n, sep="/"))
   }
   if(!dir.exists(target_dir)){
-    dir.create( target_dir )
+    dir.create( target_dir, recursive = T)
   }
   
 
@@ -395,7 +414,7 @@ for (a in 1:length(sp_names)){
 
   for(i in 1:k){
     cat( format( Sys.time(), "%a %b %d %X %Y"), '-', 'Running Random Forest (', i, ') model for', sp.n, '...', '\n')
-    rf[[i]] <- randomForest(model, data=predtrain2[[i]], na.action=na.omit)
+    rf[[i]] <- randomForest(as.formula(model), data=predtrain2[[i]], na.action=na.omit)
     evrf[[i]] <- dismo::evaluate(prestest2[[i]], abstest2[[i]], rf[[i]], predictors)
     rfTSS[[i]] <- max(evrf[[i]]@TPR + evrf[[i]]@TNR)-1
     rfAUC[[i]] <- evrf[[i]]@auc
@@ -447,7 +466,7 @@ for (a in 1:length(sp_names)){
 
   for(i in 1:k){
     cat( format( Sys.time(), "%a %b %d %X %Y"), '-', 'Running SVM (', i, ') model for', sp.n, '...', '\n')
-    sv[[i]] <- ksvm(model, data=predtrain[[i]])
+    sv[[i]] <- ksvm(as.formula(model), data=predtrain[[i]])
     evsv[[i]] <- dismo::evaluate(prestest[[i]], abstest[[i]], sv[[i]], predictors)
     svTSS[[i]] <- max(evsv[[i]]@TPR + evsv[[i]]@TNR)-1
     svAUC[[i]] <- evsv[[i]]@auc

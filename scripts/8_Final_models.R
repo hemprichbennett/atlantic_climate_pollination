@@ -49,6 +49,8 @@ indexOf <- function(v,findFor) {
   return(0)
 }
 
+task_id <- commandArgs(trailingOnly = TRUE)
+task_id <- as.numeric(task_id[1])
 
 #setwd("/Mydirectory")
 

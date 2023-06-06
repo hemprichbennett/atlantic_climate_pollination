@@ -52,9 +52,6 @@ indexOf <- function(v,findFor) {
 
 #setwd("/Mydirectory")
 
-task_id <- commandArgs(trailingOnly = TRUE)
-task_id <- as.numeric(task_id[1])
-
 if(is.na(task_id)){
   interactive <- T
   print('is interactive')
@@ -63,12 +60,29 @@ if(is.na(task_id)){
   print('is non-interactive')
 }
 
+if(grepl('Dropbox', getwd())){
+  # job is local, run in a loop
+  local <- T
+  print('is local')
+}else{
+  local <- F
+  print('is remote')
+}
+
+
+
+
+if(local == T){
+  processed_dir = './data/processed_data/'
+}else{
+  processed_dir = '/data/zool-mosquito_ecology/zool2291/atlantic_climate_pollination/data/processed_data/'
+}
 # Settings ----------------------------------------------------------------
 #########           ACTION NEEDED        ##########
 
 # for GLM, RandomForest and SVM
 ##Set your model to the biovariables you selected. It should be exactly like the names of the environmental rasters.
-model <- pa ~bio_2+bio_3+bio_8+bio_15+bio_18
+
 
 # partitions (4 = 75% train e 25% test; 5 = 80% train e 20% test; 10 = 90% train e 10% test)
 k = 10
@@ -77,7 +91,7 @@ bg.pt = 10000
 # threshold ('spec_sens' = max. spec + sens)
 t.met = 'spec_sens'
 # Minimum TSS value for ensemble
-tss.lim = 0.6
+tss.lim = 0.5
 
 cont.maps = T # save continuous maps by algorithm
 bin.maps = T # save binary maps by algorithm
@@ -85,7 +99,7 @@ ens.maps = T # save ensemble maps by algorithm
 
 #### Name of .csv file with species occurrences, columns: 'species', 'lon', 'lat'
 ## Entrar com a planilha limpa pós spthin
-file = "./data/processed_data/03_thin_rec.csv"
+file = paste0(processed_dir, "03_thin_rec.csv")
 
 ##minimum occurrence records to run analysis
 n_min <- 15

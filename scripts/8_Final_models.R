@@ -161,8 +161,8 @@ for (a in 1:length(sp_names)){
   
   desired_variables <- paste0(results_root, sp.n, '_retained_pearson.csv') %>%
     read_csv() %>%
-    pull(x) #%>%
-    #gsub('X', 'bio_', .)
+    pull(x) %>%
+    gsub('X_', '', .)
 
   model <- paste('pa ~', paste(desired_variables, collapse = ' + '))
     

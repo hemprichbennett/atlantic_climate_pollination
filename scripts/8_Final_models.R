@@ -252,7 +252,15 @@ for (a in 1:length(sp_names)){
   # For bioclim and Maxent:
   pres <- sp.data[sp.data$pa==1,2:3]
   abs <- sp.data[sp.data$pa!=1,2:3]
-  bg <- randomPoints(predictors, bg.pt)
+  
+  # if there are fewer than bg.pt (variable created manually above)
+  # non-na points, use the maximum total number of points
+  if(length(values(predictors)[!is.na(values(predictors))]) < bg.pt){
+    bg <- randomPoints(predictors, length(values(predictors)[!is.na(values(predictors))]), tryf = 100)
+  }else{
+    bg <- randomPoints(predictors, bg.pt)
+  }
+  
   colnames(bg) <- c("lon", "lat")
 
 

@@ -27,6 +27,10 @@ interaction_file <- read_csv("./data/raw_data/interaction_list.csv")
 
 splist <- unique(c(interaction_file$Pollinator, interaction_file$Plant))
 
+# some species had synonyms, so were missing from gbif etc
+missing_sp <- read_csv('data/raw_data/missing_sp.csv',col_names = F) %>%
+  pull(X1)
+splist <- c(splist, missing_sp)
 
 # GBIF =--------------------------------------------------------------------
 
@@ -47,7 +51,7 @@ only_keys <- gbif_taxon_keys %>%
 gbif_taxon_keys %>%
   filter(matchtype == "EXACT" & status == "ACCEPTED") %>% # get only accepted names
   select(usagekey) %>% #retain only the taxonkeys
-  rename(taxonKey = only_keys) %>%
+  #rename(taxonKey = only_keys) %>%
   write_csv(., 'data/raw_data/01_gbif_taxonkeys.csv')
 
 # download data directly at GBIF

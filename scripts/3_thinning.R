@@ -52,7 +52,7 @@ sp_df_5 <- thin_function(chosen_sp = this_sp, thin_dist = 5)
 
 
 write_csv(sp_df_5, 
-          path = paste0('outputs/sp/03_', gsub(' ', '_', this_sp),
+          path = paste0('data/processed_data/sp/03_', gsub(' ', '_', this_sp),
                         '_5.csv'))
 
 # and now 10 km
@@ -61,5 +61,5 @@ sp_df_10 <- thin_function(chosen_sp = this_sp, thin_dist = 10)
 
 
 write_csv(sp_df_10, 
-          path = paste0('outputs/sp/03_', gsub(' ', '_', this_sp),
+          path = paste0('data/processed_data/sp/03_', gsub(' ', '_', this_sp),
                         '_10.csv'))

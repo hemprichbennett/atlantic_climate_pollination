@@ -14,18 +14,30 @@ library(bit64)
 
  # read in file that gbif created
 # DOI10.15468/dl.j5t9hg
-gbif_df <- fread("./data/raw_data/gbif_output.csv", na.strings = c("", NA))
+gbif_df <- fread("./data/raw_data/gbif_output.csv", na.strings = c("", NA)) %>%
+  # add file from second gbif query (some synonyms for species were used in 2022 query,
+  # whoops)
+bind_rows(., fread("data/raw_data/0036248-230530130749713.csv"))
 
-
-gbif_df2 <- gbif_df[,c(8,10,23,22,33,16)]
-colnames(gbif_df2) <- c("family", "species", "lon", "lat", "year", "country")
+just_new <- fread("data/raw_data/0036248-230530130749713.csv") %>%
+  pull(species) %>%
+  unique(.)
+gbif_df2 <- gbif_df %>%
+  select(family, species, decimalLongitude, decimalLatitude, year, countryCode) %>%
+  rename(lat = decimalLatitude,
+         lon = decimalLongitude,
+         countrycode = countryCode)
+    
+#colnames(gbif_df2) <- c("family", "species", "lon", "lat", "year", "country")
 # Before
 # [1] "family"           "species"          "decimalLongitude" "decimalLatitude"  "year"            
 # [6] "countryCode" 
 
 
-interaction_file <- read_csv("./data/raw_data/interaction_list.csv")
-splist <- unique(c(interaction_file$Pollinator, interaction_file$Plant))
+splist <- unique(gbif_df2$species)
+
+tibble(splist = splist) %>%
+  write_csv(file = 'data/processed_data/splist.csv')
 
 # speciesLink -------------------------------------------------------------
 
@@ -43,8 +55,10 @@ per_iteration <- seq(1,length(splist))
 batches <- split(per_iteration, sort(per_iteration%%n_iterations))
 splink_list <- list()
 for(i in 1:length(batches)){
-  
   sp <- splist[batches[[i]]]
+  if(i == 7){
+    sp <- sp[-1]
+  }
   splink_list[[i]] <- rspeciesLink (dir = "data/processed_data/" ,
                 filename = paste0("splist_",i) ,
                 save = TRUE,
@@ -61,21 +75,26 @@ for(i in 1:length(batches)){
                 Images = NULL,
                 RedList = FALSE,
                 MaxRecords = NULL)
-  Sys.sleep(30)
+  Sys.sleep(60)
 }
 
-splink_list <- bind_rows(splink_list)
+  splink_list <- bind_rows(splink_list)
 
-splist_specieslink <- splink_list[,c(11,12,13,14,25,26,18,22)]
-colnames(splist_specieslink)
+write_csv(x = splink_list, file = 'data/processed_data/splink_list.csv')  
+splink_list <-  read_csv(file = 'data/processed_data/splink_list.csv')
+
+
+
+splist_specieslink <- splink_list %>%
+  select(family, genus, specificEpithet, decimalLongitude, decimalLatitude, year, country) %>%
+  unite(species, genus, specificEpithet, sep = ' ')
 # [1] "family"           "genus"            "species"          "scientificName"   "decimalLongitude"
 # [6] "decimalLatitude"  "year"             "countryCode" 
 
-splist_specieslink$species <- with(splist_specieslink, 
-                                    paste(splist_specieslink$genus, splist_specieslink$specificEpithet))
 
-splist_specieslink <- splist_specieslink[, c(1,4,5,6,7,8)]
-colnames(splist_specieslink) <- c("family", "species", "lon", "lat", "year", "country")
+
+# splist_specieslink <- splist_specieslink[, c(1,4,5,6,7,8)]
+# colnames(splist_specieslink) <- c("family", "species", "lon", "lat", "year", "country")
 
 
 # Table with search results -----------------------------------------------
@@ -85,20 +104,4 @@ splist_specieslink_table <-
          date_of_search = rep(Sys.Date(), length(splist))) %>%
   left_join(splist_specieslink, by = c("species" = "species"))
 
-gbif_table <-
-  tibble(species = splist,
-         date_of_search = rep(Sys.Date(), length(splist))) %>%  
-  left_join(gbif_df2, by = "species")
-
-searches <- rbind(splist_specieslink_table, gbif_table)
-
-
-
-# Saving outputs ----------------------------------------------------------
-
-write_csv(searches, "./data/raw_data/01_search_refined_results.csv")
-write_csv(splist_specieslink, "./data/raw_data/01_specieslink_refined.csv")
-write_csv(gbif_df2, "./data/raw_data/01_gbif_refined.csv")
-write_csv(splist_specieslink, "./data/raw_data/01_unclean_records_specieslink.csv")
-write_csv(gbif_df, "./data/raw_data/01_unclean_records_gbif.csv")
-
+write_csv(splist_specieslink_table, 'data/raw_data/splink_data.csv') 

@@ -13,19 +13,70 @@ library(tidyverse)
 library(CoordinateCleaner)
 library(countrycode)
 
-# reading data
 
-searches_df  <- read_csv("./data/raw_data/01_search_refined_results.csv")
+# reading data using vroom as it doesn't move the file into ram
+gbif_df <-read_tsv("./data/raw_data/gbif_output.csv") %>%
+  bind_rows(read_tsv('data/raw_data/0036248-230530130749713.csv'))
+coords <- read_csv('parameters/coordinate_boundaries.csv')
+# make the coordinates into a named vector
+coords_vec <- deframe(coords)
 
 
-interaction_file <- read_csv("./data/raw_data/interaction_list.csv")
+gbif_df2 <- gbif_df %>%
+  select(family, species, countryCode, decimalLongitude, decimalLatitude, year) %>%
+  rename('country' = 'countryCode', 'lon' = 'decimalLongitude', 'lat' = 'decimalLatitude') %>%
+  filter(year >= 1950) %>%
+  filter(!is.na(lon) & !is.na(lat)) %>%
+  filter(lon <= coords_vec['max_lon'] & lon >= coords_vec['min_lon']) %>%
+  filter(lat <= coords_vec['max_lat'] & lat >= coords_vec['min_lat']) %>%
+  mutate(date_of_search = Sys.Date())
 
-splist <- unique(c(interaction_file$Pollinator, interaction_file$Plant))
+write_csv(x = gbif_df2, path = 'data/raw_data/01_gbif_more_refined.csv')
+
+
+splist <- read_csv('data/processed_data/splist.csv') %>%
+  pull(splist)
+
+# 
+# # Before
+# # [1] "family"           "species"          "decimalLongitude" "decimalLatitude"  "year"
+# # [6] "countryCode"
+# 
+# 
+
+splist_specieslink_table <- read_csv('data/raw_data/splink_data.csv') %>%
+  rename(lat = decimalLatitude, 
+         lon = decimalLongitude)
+gbif_table <-
+  tibble(species = splist,
+         date_of_search = rep(Sys.Date(), length(splist))) %>%
+  left_join(gbif_df2, by = "species")
+
+searches <- bind_rows(splist_specieslink_table, gbif_df2)
+
+
+
+# Saving outputs ----------------------------------------------------------
+
+write_csv(searches, "./data/raw_data/01_search_refined_results.csv")
+#write_csv(splist_specieslink, "./data/raw_data/01_specieslink_refined.csv")
+write_csv(gbif_df2, "./data/raw_data/01_gbif_refined.csv")
+# why is the same object being saved twice?
+#write_csv(splist_specieslink, "./data/raw_data/01_unclean_records_specieslink.csv")
+write_csv(gbif_df, "./data/raw_data/01_unclean_records_gbif.csv")
+# 
+
+
+searches_df  <- searches
+
+
 
 # removing records with NA coordinates, keeping only species from our list
 searches_occs <- searches_df %>%
   filter(!is.na(lon) & !is.na(lat)) %>%
-  filter(species %in% splist)
+  filter(species %in% splist) %>%
+  filter(lon <= coords_vec['max_lon'] & lon >= coords_vec['min_lon']) %>%
+  filter(lat <= coords_vec['max_lat'] & lat >= coords_vec['min_lat'])
 
 
 # Viewing unclean records
@@ -36,13 +87,19 @@ ggplot()+ coord_fixed()+
   theme_bw()
 
 # standardizing country names
-searches_occs$countrycode <- countrycode(searches_occs$country, origin = 'iso2c', destination = 'iso3c')
-searches_occs$countrycode <- ifelse(is.na(searches_occs$countrycode), 
-                                    "BRA", searches_occs$countrycode)
 
-# NA <- 0
-searches_occs$lon <- ifelse(is.na(searches_occs$lon), 
-                            0, searches_occs$lon)
+searches_occs <- searches_occs %>%
+  mutate(country = gsub('Brasil', 'Brazil', country)) %>%
+  mutate(countrycode = ifelse(nchar(country)> 2,
+                              countrycode(country, origin = 'country.name', destination = 'iso3c'),
+                              countrycode(country, origin = 'iso2c', destination = 'iso3c')
+                              ))
+# searches_occs$countrycode <- ifelse(is.na(searches_occs$countrycode), 
+#                                     "BRA", searches_occs$countrycode)
+
+# # NA <- 0
+# searches_occs$lon <- ifelse(is.na(searches_occs$lon), 
+#                             0, searches_occs$lon)
 
 flags_occs <- clean_coordinates(
   x = searches_occs,
